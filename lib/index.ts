@@ -1,5 +1,5 @@
 import { SFMC } from './sfmc/index';
-import { AuthObject } from './types/sfmc_auth_object';
+import { AuthObject } from './sfmc/types/sfmc_auth_object';
 /*
  * Creates an instance of BLDR SDK.
  *
@@ -9,7 +9,6 @@ module.exports = class BLDR {
     sfmc: {
         client: Object;
     };
-
     constructor(authObject: AuthObject) {
         this.sfmc = new SFMC(authObject);
         // this.asset = new Asset(this.client.rest);

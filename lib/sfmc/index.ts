@@ -3,8 +3,15 @@
 const SDK = require('sfmc-sdk');
 const client = require('../sfmc/api/Client');
 
+// Class Imports
+import { Account } from '../sfmc/api/Account';
 import { Folder } from '../sfmc/api/Folder';
-import { AuthObject } from '../types/sfmc_auth_object';
+import { Automation } from '../sfmc/api/Automation';
+import { Asset } from '../sfmc/api/ContentBuilderAssets';
+import { sfmc_context_mapping } from './utils/sfmcContextMapping';
+
+// Type Definition Imports
+import { AuthObject } from './types/sfmc_auth_object';
 
 /**
  * Creates an instance of BLDR SDK.
@@ -14,6 +21,9 @@ import { AuthObject } from '../types/sfmc_auth_object';
 export class SFMC {
     client;
     folder: Object;
+    asset: Object;
+    account: Object;
+    automation: Object;
 
     constructor(AuthObject: AuthObject) {
         this.client = new SDK(
@@ -45,12 +55,12 @@ export class SFMC {
             }
         );
 
-        this.folder = new Folder(this.client);
-        // this.asset = new Asset(this.client.rest);
-        // this.account = new Account(this.client.soap);
+        this.folder = new Folder(this.client, sfmc_context_mapping);
+        this.asset = new Asset(this.client);
+        this.account = new Account(this.client);
+        this.automation = new Automation(this.client);
         // this.describe = new Describe(this.client.soap);
         // this.dataExtension = new DataExtension(this.client.soap);
         // this.query = new QueryDefinition(this.client.rest, this.client.soap);
-        // this.automation = new Automation(this.client.rest, this.client.soap);
     }
 }

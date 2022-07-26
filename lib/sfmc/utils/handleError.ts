@@ -1,4 +1,4 @@
-module.exports.handleError = (err: any) => {
+const handleError = (err: any) => {
     if (
         Object.prototype.hasOwnProperty.call(err, 'JSON') &&
         Object.prototype.hasOwnProperty.call(err.JSON, 'Results') &&
@@ -13,3 +13,5 @@ module.exports.handleError = (err: any) => {
 
     return err;
 };
+
+export { handleError };

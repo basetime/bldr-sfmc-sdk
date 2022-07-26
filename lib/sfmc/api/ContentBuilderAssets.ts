@@ -1,227 +1,286 @@
-// module.exports = class Asset {
-//     Client;
-//     authObject;
+import { Client } from '../types/sfmc_client';
+import { handleError } from '../utils/handleError';
 
-//     constructor(Client: Client, authObject: AuthObject) {
-//         this.Client = Client;
-//         this.authObject = authObject;
-//     }
+export class Asset {
+    client;
+    constructor(client: Client) {
+        this.client = client;
+    }
+    /**
+     * Retrieve Asset Object by assetID
+     *
+     * @param {number} assetId
+     * @returns
+     */
+    async getByAssetId(assetId: number) {
+        try {
+            if (!assetId) {
+                throw new Error('assetId argument is required');
+            }
 
-//     /**
-//      * Retrieve bulk assets by array of category IDs
-//      *
-//      * @param {number[]} folderIdArray
-//      * @returns Promise<void>
-//      */
-//     async getByFolderArray(folderIdArray: number[]) {
-//         // TODO: add auto pagination
-//         try {
-//             if (!Array.isArray(folderIdArray)) {
-//                 throw new Error('folderIds argument must be an array');
-//             }
+            return this.client.rest.get(`/asset/v1/content/assets/${assetId}`);
+        } catch (err: any) {
+            return handleError(err);
+        }
+    }
+    /**
+     * Retrieve Email Asset based on Legacy Asset ID
+     *
+     * @param {number} assetId
+     * @returns
+     */
+    async getAssetByLegacyId(assetId: number) {
+        try {
+            if (!assetId) {
+                throw new Error('assetId argument is required');
+            }
 
-//             const client = await this.Client.init(this.authObject);
-//             return await client.rest.post('/asset/v1/content/assets/query', {
-//                 page: {
-//                     page: 1,
-//                     pageSize: 200,
-//                 },
-//                 query: {
-//                     property: 'category.id',
-//                     simpleOperator: 'in',
-//                     value: folderIdArray,
-//                 },
-//                 sort: [
-//                     {
-//                         property: 'id',
-//                         direction: 'ASC',
-//                     },
-//                 ],
-//             });
-//         } catch (err) {
-//             return handleError(err);
-//         }
-//     }
-//     /**
-//      * Get Asset Object by assetID
-//      *
-//      * @param {number} assetId
-//      * @returns
-//      */
-//     async getById(assetId: number) {
-//         try {
-//             if (!assetId) {
-//                 throw new Error('assetId argument is required');
-//             }
+            return this.client.rest.post('/asset/v1/content/assets/query', {
+                page: {
+                    page: 1,
+                    pageSize: 200,
+                },
+                query: {
+                    property: 'data.email.legacy.legacyId',
+                    simpleOperator: 'equal',
+                    value: assetId,
+                },
+            });
+        } catch (err: any) {
+            return handleError(err);
+        }
+    }
+    /**
+     * Retrieve bulk assets from array of categoryIds
+     *
+     * @param {number[]} folderIdArray
+     * @returns Promise<void>
+     */
+    async getAssetsByFolderArray(folderIdArray: number[]) {
+        // TODO: add auto pagination
+        try {
+            if (!Array.isArray(folderIdArray)) {
+                throw new Error('folderIdArray argument must be an array');
+            }
 
-//             const client = await this.Client.init(this.authObject);
-//             const assetResp = await client.rest.get(
-//                 `/asset/v1/content/assets/${assetId}`
-//             );
+            return await this.client.rest.post(
+                '/asset/v1/content/assets/query',
+                {
+                    page: {
+                        page: 1,
+                        pageSize: 200,
+                    },
+                    query: {
+                        property: 'category.id',
+                        simpleOperator: 'in',
+                        value: folderIdArray,
+                    },
+                    sort: [
+                        {
+                            property: 'id',
+                            direction: 'ASC',
+                        },
+                    ],
+                }
+            );
+        } catch (err: any) {
+            return handleError(err);
+        }
+    }
 
-//             return new Array(assetResp);
-//         } catch (err) {
-//             return handleError(err);
-//         }
-//     }
-//     /**
-//      * Get Email Asset based on Legacy Asset ID
-//      *
-//      * @param {number} assetId
-//      * @returns
-//      */
-//     async getByLegacyId(assetId: number) {
-//         try {
-//             if (!assetId) {
-//                 throw new Error('assetId argument is required');
-//             }
+    /**
+     * Retrieve Asset Object by asset name and folder name
+     *
+     * @param request.assetName
+     * @param request.assetFolderName
+     * @returns
+     */
+    async getAssetByNameAndFolder(request: {
+        assetName: string;
+        assetFolderName: string;
+    }) {
+        try {
+            if (!request.assetName) {
+                throw new Error(`assetName is required`);
+            }
 
-//             const client = await this.Client.init(this.authObject);
-//             const assetResp = await client.rest.post(
-//                 '/asset/v1/content/assets/query',
-//                 {
-//                     page: {
-//                         page: 1,
-//                         pageSize: 50,
-//                     },
-//                     query: {
-//                         property: 'data.email.legacy.legacyId',
-//                         simpleOperator: 'equal',
-//                         value: assetId,
-//                     },
-//                 }
-//             );
+            if (!request.assetFolderName) {
+                throw new Error(`assetFolderName is required`);
+            }
 
-//             if (
-//                 !Object.prototype.hasOwnProperty.call(assetResp, 'items') &&
-//                 assetResp.items.length === 0
-//             )
-//                 throw new Error(`No Asset Found for ${assetId}`);
+            return this.client.rest.post('/asset/v1/content/assets/query', {
+                page: {
+                    page: 1,
+                    pageSize: 200,
+                },
+                query: {
+                    leftOperand: {
+                        property: 'name',
+                        simpleOperator: 'equals',
+                        value: request.assetName,
+                    },
+                    logicalOperator: 'AND',
+                    rightOperand: {
+                        property: 'category.name',
+                        simpleOperator: 'equals',
+                        value: request.assetFolderName,
+                    },
+                },
+                sort: [
+                    {
+                        property: 'name',
+                        direction: 'DESC',
+                    },
+                ],
+            });
+        } catch (err: any) {
+            return handleError(err);
+        }
+    }
 
-//             return assetResp.items;
-//         } catch (err) {
-//             return handleError(err)
-//         }
-//     }
+    /**
+     * Search for assets based on search property and term
+     *
+     * @param {string} request.searchKey
+     * @param {string} request.searchTerm
+     * @returns
+     */
+    async searchAsset(request: { searchKey: string; searchTerm: string }) {
+        try {
+            return this.client.rest.post('/asset/v1/content/assets/query', {
+                page: {
+                    page: 1,
+                    pageSize: 200,
+                },
+                query: {
+                    property: request.searchKey,
+                    simpleOperator: 'like',
+                    value: request.searchTerm,
+                },
+                sort: [
+                    {
+                        property: 'name',
+                        direction: 'DESC',
+                    },
+                ],
+            });
+        } catch (err: any) {
+            return handleError(err);
+        }
+    }
 
-//     async getByNameAndFolder(assetName: string, assetFolderName: string) {
-//         try {
-//             const client = await this.Client.init(this.authObject);
-//             return await client.rest.post('/asset/v1/content/assets/query', {
-//                 page: {
-//                     page: 1,
-//                     pageSize: 200,
-//                 },
-//                 query: {
-//                     leftOperand: {
-//                         property: 'name',
-//                         simpleOperator: 'equals',
-//                         value: assetName,
-//                     },
-//                     logicalOperator: 'AND',
-//                     rightOperand: {
-//                         property: 'category.name',
-//                         simpleOperator: 'equals',
-//                         value: assetFolderName,
-//                     },
-//                 },
-//                 sort: [
-//                     {
-//                         property: 'name',
-//                         direction: 'DESC',
-//                     },
-//                 ],
-//             });
-//         } catch (err) {
-//             return handleError(err)
-//         }
-//     }
+    /**
+     * Create content builder asset
+     *
+     * @param {number} request.id
+     * @param {string} request.name
+     * @param {string} request.assetType.name
+     * @param {string} request.assetType.displayname
+     * @param {number} request.assetType.id
+     * @param {number} request.category.id
+     * @param {string} request.category.name
+     * @param {object} request.content
+     * @param {object} request.meta
+     * @param {object} request.slots
+     * @param {object} request.views
+     * @returns
+     */
+    async postAsset(request: {
+        id: number;
+        name: string;
+        assetType: object;
+        category: {
+            id: number;
+            name: string;
+        };
+        content?: object;
+        meta?: object;
+        slots?: object;
+        views?: object;
+    }) {
+        try {
+            return this.client.rest.post(`/asset/v1/content/assets/`, request);
+        } catch (err) {
+            return handleError(err);
+        }
+    }
 
-//     async search(searchKey: string, searchTerm: string) {
-//         try {
-//             const client = await this.Client.init(this.authObject);
-//             return await client.rest.post('/asset/v1/content/assets/query', {
-//                 page: {
-//                     page: 1,
-//                     pageSize: 200,
-//                 },
-//                 query: {
-//                     property: searchKey,
-//                     simpleOperator: 'like',
-//                     value: searchTerm,
-//                 },
-//                 sort: [
-//                     {
-//                         property: 'name',
-//                         direction: 'DESC',
-//                     },
-//                 ],
-//             });
-//         } catch (err) {
-//             return handleError(err)
-//         }
-//     }
+    /**
+     * Create content builder asset
+     *
+     * @param {number} request.id
+     * @param {string} request.name
+     * @param {string} request.assetType.name
+     * @param {string} request.assetType.displayname
+     * @param {number} request.assetType.id
+     * @param {number} request.category.id
+     * @param {string} request.category.name
+     * @param {object} request.content
+     * @param {object} request.meta
+     * @param {object} request.slots
+     * @param {object} request.views
+     * @returns
+     */
+    async putAsset(request: {
+        id: number;
+        name: string;
+        assetType: object;
+        category: {
+            id: number;
+            name: string;
+        };
+        content?: object;
+        meta?: object;
+        slots?: object;
+        views?: object;
+    }) {
+        try {
+            if (!request.id) {
+                throw new Error('Asset Id is required');
+            }
 
-//     async postAsset(asset: {
-//         id: number,
-//         name: string,
-//         assetType: object,
-//         category: {
-//             id: number,
-//             name: string
-//         },
-//         content?: object,
-//         meta?: object,
-//         slots?: object,
-//         views?: object
-//     }) {
-//         try {
-//             const client = await this.Client.init(this.authObject);
-//             const resp = await client.rest.post(
-//                 `/asset/v1/content/assets/`,
-//                 asset
-//             );
+            const assetId = request.id;
+            return this.client.rest.put(
+                `/asset/v1/content/assets/${assetId}`,
+                request
+            );
+        } catch (err) {
+            return handleError(err);
+        }
+    }
 
-//             return resp;
-//         } catch (err) {
-//             return handleError(err)
-//         }
-//     }
+    /**
+     * Get Image data from Image assetId
+     * Will also grab the base64 file data and add it to the fileProperties object
+     *
+     * @param {number} assetId
+     * @returns
+     */
+    async getImageData(assetId: number) {
+        try {
+            if (!assetId) {
+                throw new Error('Asset Id is required');
+            }
 
-//     async putAsset(asset: {
-//         id: number,
-//         name: string,
-//         assetType: object,
-//         category: {
-//             id: number,
-//             name: string
-//         },
-//         content?: object,
-//         meta?: object,
-//         slots?: object,
-//         views?: object
-//     }) {
-//         try {
-//             if (!asset.id) {
-//                 throw new Error('Asset Id is required');
-//             }
+            let apiRequest = await this.client.rest.get(
+                `/asset/v1/content/assets/${assetId}`
+            );
 
-//             const assetId = asset.id;
-//             const client = await this.Client.init(this.authObject);
-//             const resp = await client.rest.put(
-//                 `/asset/v1/content/assets/${assetId}`,
-//                 asset
-//             );
-//             return resp;
-//         } catch (err) {
-//             return handleError(err)
-//         }
-//     }
+            if (
+                apiRequest &&
+                Object.prototype.hasOwnProperty.call(
+                    apiRequest,
+                    'fileProperties'
+                )
+            ) {
+                apiRequest.fileProperties.fileData = await this.client.rest.get(
+                    `/asset/v1/content/assets/${assetId}/file`
+                );
+            }
 
-//     // async getImageFile(id) {
-//     //     if (!id) throw new Error('Asset Id is required');
-
-//     //     const resp = await this.rest.get(`/asset/v1/content/assets/${id}/file`);
-//     //     return resp;
-//     // }
-// };
+            return apiRequest;
+        } catch (err) {
+            return handleError(err);
+        }
+    }
+}
