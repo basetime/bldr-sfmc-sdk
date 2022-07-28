@@ -1,7 +1,7 @@
 import { Client } from '../types/sfmc_client';
 import { handleError } from '../utils/handleError';
 
-export class Asset {
+export class ContentBuilderAsset {
     client;
     constructor(client: Client) {
         this.client = client;
@@ -145,7 +145,7 @@ export class Asset {
      * @param {string} request.searchTerm
      * @returns
      */
-    async searchAsset(request: { searchKey: string; searchTerm: string }) {
+    async searchAssets(request: { searchKey: string; searchTerm: string }) {
         try {
             return this.client.rest.post('/asset/v1/content/assets/query', {
                 page: {

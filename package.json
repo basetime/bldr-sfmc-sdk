@@ -2,9 +2,9 @@
     "name": "@basetime/bldr-sfmc-sdk",
     "version": "1.0.0",
     "description": "SDK for BLDR SFMC Core Functionality",
-    "main": "dist/index.js",
+    "main": "./dist/index.js",
     "directories": {
-        "lib": "lib"
+        "lib": "./dist/lib/index.js"
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",

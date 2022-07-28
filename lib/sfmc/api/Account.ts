@@ -83,7 +83,7 @@ export class Account {
                 const getAllMidsRequest = await this.getInstanceDetails();
 
                 if (getAllMidsRequest.OverallStatus !== 'OK') {
-                    throw new Error(getAllMidsRequest.OverallStatus);
+                    throw new Error(getAllMidsRequest);
                 }
 
                 midsArray = getAllMidsRequest.Results.map(

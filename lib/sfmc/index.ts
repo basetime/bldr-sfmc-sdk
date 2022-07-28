@@ -7,7 +7,7 @@ const client = require('../sfmc/api/Client');
 import { Account } from '../sfmc/api/Account';
 import { Folder } from '../sfmc/api/Folder';
 import { Automation } from '../sfmc/api/Automation';
-import { Asset } from '../sfmc/api/ContentBuilderAssets';
+import { ContentBuilderAsset } from '../sfmc/api/ContentBuilderAssets';
 import { sfmc_context_mapping } from './utils/sfmcContextMapping';
 
 // Type Definition Imports
@@ -19,11 +19,11 @@ import { AuthObject } from './types/sfmc_auth_object';
  * @param {object} AuthObject Auth Object for making requests
  */
 export class SFMC {
-    client;
-    folder: Object;
-    asset: Object;
-    account: Object;
-    automation: Object;
+    client: any;
+    folder: object;
+    asset: object;
+    account: object;
+    automation: object;
 
     constructor(AuthObject: AuthObject) {
         this.client = new SDK(
@@ -56,7 +56,7 @@ export class SFMC {
         );
 
         this.folder = new Folder(this.client, sfmc_context_mapping);
-        this.asset = new Asset(this.client);
+        this.asset = new ContentBuilderAsset(this.client);
         this.account = new Account(this.client);
         this.automation = new Automation(this.client);
         // this.describe = new Describe(this.client.soap);

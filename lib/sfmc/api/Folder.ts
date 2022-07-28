@@ -50,7 +50,7 @@ export class Folder {
             );
 
             if (resp.OverallStatus !== 'OK') {
-                throw new Error('Unable to Retrieve Folders');
+                return resp.OverallStatus;
             }
 
             return resp;
@@ -244,7 +244,7 @@ export class Folder {
     }) {
         try {
             let folders: number[] = [];
-            let results: object[] = [];
+            let results: any[] = [];
 
             // Get target folder from SFMC
             let rootRequest = await this.getFolder(request);
@@ -268,8 +268,6 @@ export class Folder {
 
             // Recursively get folders from SFMC
             do {
-                console.log('in do');
-
                 let categoryId = folders[0];
                 // SFMC Folder response checking for subfolders
                 let subfolderRequest = await this.getSubfolders({
@@ -288,6 +286,7 @@ export class Folder {
                 folders.shift();
             } while (folders.length !== 0);
 
+            console.log('end', results)
             return results;
         } catch (err) {
             return handleError(err);
