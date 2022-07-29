@@ -1,5 +1,7 @@
-import { SFMC_Client } from "../../types/sfmc_client";
-
+import { SFMC_Client } from "../types/sfmc_client";
+import { SFMC_SOAP_Folder } from "../../sfmc/types/objects/sfmc_soap_folders"
+import { buildFolderPathsSoap } from "../utils/BuildSoapFolderObjects";
+import { formatContentBuilderAssets } from "../utils/FormatContentBuilderAsset"
 
 export class ContentBuilder {
     sfmc: SFMC_Client;
@@ -7,7 +9,6 @@ export class ContentBuilder {
     constructor(sfmc: SFMC_Client) {
         this.sfmc = sfmc;
     }
-
     /**
      *
      * @param request.contentType
@@ -41,12 +42,12 @@ export class ContentBuilder {
         searchKey: string;
         searchTerm: string;
     }) => {
-        const searchRequest = await this.sfmc.folder.search(request)
-        if (searchRequest.OverallStatus !== 'OK') {
-            return searchRequest.OverallStatus;
+        const response = await this.sfmc.folder.search(request)
+        if (response.OverallStatus !== 'OK') {
+            return response.OverallStatus;
         }
 
-        const formattedSearchRequest = searchRequest.Results.map((
+        const formattedResponse = response && response.Results.map((
             folder: {
                 Name: string;
                 CreatedDate: string;
@@ -67,9 +68,9 @@ export class ContentBuilder {
                     ID: folder.ParentFolder.ID,
                 }
             }
-        })
+        }) || []
 
-        return formattedSearchRequest
+        return formattedResponse
     }
     /**
      *
@@ -98,13 +99,12 @@ export class ContentBuilder {
      *  }]
      * ```
      */
-     searchAssets = async (request: {
+    searchAssets = async (request: {
         searchKey: string;
         searchTerm: string
     }) => {
-        const searchRequest = await this.sfmc.asset.searchAssets(request)
-
-        const formattedSearchRequest = searchRequest.items.map((
+        const response = await this.sfmc.asset.searchAssets(request)
+        const formattedResponse = response && response.items.map((
             asset: {
                 id: number;
                 name: string;
@@ -129,9 +129,9 @@ export class ContentBuilder {
                     ParentId: asset.category.parentId,
                 }
             }
-        })
+        }) || []
 
-        return formattedSearchRequest
+        return formattedResponse
     }
     /**
      *
@@ -160,41 +160,29 @@ export class ContentBuilder {
      *  }]
      * ```
      */
-     gatherAssetsByCategoryId = async (request: {
+    gatherAssetsByCategoryId = async (request: {
         contentType: string;
         categoryId: number;
     }) => {
-        const getAllFolderIds = await this.sfmc.folder.getSubfoldersRecursive(request)
-        console.log('fn', getAllFolderIds)
-        // const searchRequest = await this.sfmc.asset.searchAssets(request)
+        const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(request)
+        const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
+            return {
+                ID: folder.ID,
+                Name: folder.Name,
+                ContentType: folder.ContentType,
+                ParentFolder: {
+                    Name: folder.ParentFolder.Name,
+                    ID: folder.ParentFolder.ID
+                }
+            }
+        }) || []
 
-        // const formattedSearchRequest = searchRequest.items.map((
-        //     asset: {
-        //         id: number;
-        //         name: string;
-        //         assetType: {
-        //             name: string;
-        //         };
-        //         createdDate: string;
-        //         modifiedDate: string;
-        //         category: {
-        //             name: string;
-        //             parentId: string;
-        //         }
-        //     }) => {
-        //     return {
-        //         ID: asset.id,
-        //         Name: asset.name,
-        //         AssetType: asset.assetType.name,
-        //         CreatedDate: asset.createdDate,
-        //         ModifiedDate: asset.modifiedDate,
-        //         Category: {
-        //             Name: asset.category.name,
-        //             ParentId: asset.category.parentId,
-        //         }
-        //     }
-        // })
+        const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
+        const isolateFolderIds = buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => folder.Name !== 'Content Builder' && folder.ID).filter(Boolean)
+        const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds)
+        const formattedAssetResponse = assetResponse && assetResponse.items && await formatContentBuilderAssets(assetResponse.items, buildFolderPaths.folders)
 
-        return getAllFolderIds
+        return formattedAssetResponse || []
+
     }
 }

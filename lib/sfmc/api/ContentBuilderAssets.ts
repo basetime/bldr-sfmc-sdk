@@ -63,7 +63,7 @@ export class ContentBuilderAsset {
                 throw new Error('folderIdArray argument must be an array');
             }
 
-            return await this.client.rest.post(
+            return this.client.rest.post(
                 '/asset/v1/content/assets/query',
                 {
                     page: {
@@ -145,7 +145,10 @@ export class ContentBuilderAsset {
      * @param {string} request.searchTerm
      * @returns
      */
-    async searchAssets(request: { searchKey: string; searchTerm: string }) {
+    async searchAssets(request: {
+        searchKey: string;
+        searchTerm: string
+    }) {
         try {
             return this.client.rest.post('/asset/v1/content/assets/query', {
                 page: {

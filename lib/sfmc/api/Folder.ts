@@ -1,6 +1,7 @@
 import { Client } from '../types/sfmc_client';
 import { SFMCContextMapping } from '../types/sfmc_context_mapping';
 import { handleError } from '../utils/handleError';
+import { SFMC_SOAP_Folder } from '../types/objects/sfmc_soap_folders';
 
 const { getProperties } = require('sfmc-soap-object-reference');
 const DataFolder = getProperties('DataFolder');
@@ -72,7 +73,7 @@ export class Folder {
         categoryId: number;
     }): Promise<{
         OverallStatus: string;
-        Results: any[];
+        Results: SFMC_SOAP_Folder[];
     }> {
         try {
             const resp = await this.client.soap.retrieve(
@@ -114,10 +115,15 @@ export class Folder {
     async getSubfolders(request: {
         contentType: string;
         parentId: number;
-    }): Promise<any> {
+    }): Promise<SFMC_SOAP_Folder[]> {
         try {
-            const results: object[] = [];
-            const response = await this.client.soap.retrieve(
+            type folders = SFMC_SOAP_Folder;
+            const results: folders[] = [];
+
+            const response: {
+                OverallStatus: string;
+                Results: SFMC_SOAP_Folder[];
+            } = await this.client.soap.retrieve(
                 'DataFolder',
                 DataFolder,
                 {
@@ -137,11 +143,12 @@ export class Folder {
                 }
             );
 
-            if (response.OverallStatus !== 'OK') {
+            if (response && response.OverallStatus !== 'OK') {
                 throw new Error('Unable to Retrieve Folders');
             }
 
-            results.push(...response.Results);
+            const responseResults = response.Results;
+            results.push(...responseResults);
             return results;
         } catch (err: any) {
             return handleError(err);
@@ -157,7 +164,7 @@ export class Folder {
     async getParentFoldersRecursive(request: {
         contentType: string;
         categoryId: number;
-    }): Promise<Object[]> {
+    }): Promise<any[]> {
         let parentId;
         let stopFolderId;
         let results: object[] = [];
@@ -185,6 +192,7 @@ export class Folder {
         const initialCategory = await this.getFolder(request);
 
         if (initialCategory.OverallStatus !== 'OK') {
+            console.log(initialCategory)
         }
 
         if (
@@ -201,34 +209,37 @@ export class Folder {
                 null;
         }
 
-        do {
-            const parentRequest = await this.getFolder({
-                contentType: request.contentType,
-                categoryId: parentId,
-            });
+        if (parentId) {
+            do {
+                const parentRequest = parentId && await this.getFolder({
+                    contentType: request.contentType,
+                    categoryId: parentId,
+                });
 
-            if (parentRequest.OverallStatus !== 'OK') {
-            }
+                if (parentRequest && parentRequest.OverallStatus !== 'OK') {
+                    console.log(parentRequest)
+                }
 
-            if (
-                parentRequest &&
-                parentRequest.Results &&
-                parentRequest.Results.length
-            ) {
-                const parentResult: {
-                    ParentFolder: {
-                        ID: number;
-                    };
-                } = parentRequest.Results[0];
-                results = [...results, ...parentRequest.Results];
-                parentId =
-                    (parentResult &&
-                        parentResult.ParentFolder &&
-                        parentResult.ParentFolder.ID) ||
-                    null;
-            }
-        } while (!stopFolderId || parentId === stopFolderId);
+                if (
+                    parentRequest &&
+                    parentRequest.Results &&
+                    parentRequest.Results.length
+                ) {
+                    const parentResult: {
+                        ParentFolder: {
+                            ID: number;
+                        };
+                    } = parentRequest.Results[0];
 
+                    results.push(...parentRequest.Results);
+                    parentId =
+                        (parentResult &&
+                            parentResult.ParentFolder &&
+                            parentResult.ParentFolder.ID) ||
+                        null;
+                }
+            } while (!stopFolderId || parentId === stopFolderId);
+        }
         return results;
     }
     /**
@@ -275,7 +286,7 @@ export class Folder {
                     parentId: categoryId,
                 });
 
-                if (subfolderRequest && subfolderRequest.length) {
+                if (subfolderRequest && Array.isArray(subfolderRequest) && subfolderRequest.length > 0) {
                     let subfolderIdArray = subfolderRequest.map(
                         (folder: { ID: number }) => folder.ID
                     );
@@ -286,9 +297,9 @@ export class Folder {
                 folders.shift();
             } while (folders.length !== 0);
 
-            console.log('end', results)
             return results;
         } catch (err) {
+            console.log(err)
             return handleError(err);
         }
     }

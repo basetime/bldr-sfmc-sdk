@@ -1,4 +1,4 @@
-import { ContentBuilder } from './search/contentBuilder/ContentBuilder'
+import { ContentBuilder } from './contentBuilder'
 /**
  * Creates an instance of BLDR SDK.
  *
