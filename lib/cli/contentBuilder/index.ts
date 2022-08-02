@@ -164,25 +164,86 @@ export class ContentBuilder {
         contentType: string;
         categoryId: number;
     }) => {
-        const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(request)
-        const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
-            return {
-                ID: folder.ID,
-                Name: folder.Name,
-                ContentType: folder.ContentType,
-                ParentFolder: {
-                    Name: folder.ParentFolder.Name,
-                    ID: folder.ParentFolder.ID
+        try {
+            const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(request)
+            const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
+                return {
+                    ID: folder.ID,
+                    Name: folder.Name,
+                    ContentType: folder.ContentType,
+                    ParentFolder: {
+                        Name: folder.ParentFolder.Name,
+                        ID: folder.ParentFolder.ID
+                    }
                 }
+            }) || []
+
+            const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
+            const isolateFolderIds = buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => folder.Name !== 'Content Builder' && folder.ID).filter(Boolean)
+            const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds)
+
+            if (
+                assetResponse &&
+                assetResponse.response &&
+                assetResponse.response.status &&
+                !assetResponse.response.status.test(/^2/)
+            ) {
+                throw new Error(assetResponse.response.statusText)
             }
-        }) || []
 
-        const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
-        const isolateFolderIds = buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => folder.Name !== 'Content Builder' && folder.ID).filter(Boolean)
-        const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds)
-        const formattedAssetResponse = assetResponse && assetResponse.items && await formatContentBuilderAssets(assetResponse.items, buildFolderPaths.folders)
+            const formattedAssetResponse = assetResponse && assetResponse.items && await formatContentBuilderAssets(assetResponse.items, buildFolderPaths.folders)
+            return formattedAssetResponse || []
 
-        return formattedAssetResponse || []
+        } catch (err: any) {
+            return err.message
+        }
 
+    }
+    /**
+     *
+     * @param assetId
+     */
+    gatherAssetById = async (assetId: number) => {
+        try {
+            if (!assetId) {
+                throw new Error('assetId is required')
+            }
+
+            const assetResponse = await this.sfmc.asset.getByAssetId(assetId)
+
+            if (
+                assetResponse &&
+                assetResponse.response &&
+                assetResponse.response.status &&
+                !assetResponse.response.status.test(/^2/)
+            ) {
+                throw new Error(assetResponse.response.statusText)
+            }
+
+            const categoryId = assetResponse && assetResponse.category && assetResponse.category.id;
+            const folderResponse = await this.sfmc.folder.getParentFoldersRecursive({
+                contentType: 'asset',
+                categoryId
+            })
+
+            const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
+                return {
+                    ID: folder.ID,
+                    Name: folder.Name,
+                    ContentType: folder.ContentType,
+                    ParentFolder: {
+                        Name: folder.ParentFolder.Name || 'Content Builder',
+                        ID: folder.ParentFolder.ID
+                    }
+                }
+            }) || []
+
+            const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
+            const formattedAssetResponse = assetResponse &&  await formatContentBuilderAssets(assetResponse, buildFolderPaths.folders)
+            return formattedAssetResponse || []
+
+        } catch (err: any) {
+            return err.message
+        }
     }
 }

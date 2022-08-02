@@ -17,5 +17,5 @@ export interface BLDR_SFMC_Content_Builder_Asset {
     content?: string;
     meta?: any;
     slots?: any;
-    views?: any[]
+    views?: any;
 }

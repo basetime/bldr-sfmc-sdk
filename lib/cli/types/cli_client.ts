@@ -3,5 +3,6 @@ export interface CLI_Client {
         searchFolders: Function;
         searchAssets: Function;
         gatherAssetsByCategoryId: Function;
+        gatherAssetById: Function;
     };
 }

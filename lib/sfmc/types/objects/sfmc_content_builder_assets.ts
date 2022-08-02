@@ -49,6 +49,8 @@ export interface SFMC_Content_Builder_Asset {
         }
     };
     content?: string;
+    meta?: object;
+    slots?: object;
     availableViews?: object[];
     modelVersion?: number;
 }

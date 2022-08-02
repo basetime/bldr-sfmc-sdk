@@ -13,6 +13,57 @@ interface BLDR_Folder {
     },
     FolderPath?: string;
 }
+
+const setAssetPostObject = (asset: SFMC_Content_Builder_Asset, folders: BLDR_Folder[]) => {
+    // Generate new bldrId for asset
+    const bldrId = guid();
+
+    // Find Compiled Folder Path from Folders Array
+    const findAssetsFolderObject = folders.find(
+        ({ ID }) => ID === asset.category.id
+    );
+
+    // Set Assets folderPath or initiate as blank
+    const folderPath = findAssetsFolderObject ? findAssetsFolderObject.FolderPath : '';
+    // Create JSON structure for new asset post
+    let post: BLDR_SFMC_Content_Builder_Asset = {
+        id: asset.id,
+        bldrId,
+        name: asset.name,
+        customerKey: asset.customerKey,
+        assetType: asset.assetType,
+        category: {
+            id: asset.category.id,
+            name: asset.category.name,
+            parentId: asset.category.parentId,
+            folderPath
+        }
+    };
+
+    if (asset.content) {
+        post.content = asset.content;
+    }
+    if (asset.meta) {
+        post.meta = asset.meta;
+    }
+    if (asset.slots) {
+        post.slots = asset.slots;
+    }
+    if (asset.views) {
+        post.views = asset.views;
+    }
+
+    // if (asset.assetType.displayName === 'Image') {
+    //     post.name =
+    //         asset.name.indexOf('.') === -1
+    //             ? asset.name
+    //             : asset.name.substring(0, asset.name.indexOf('.'));
+    //     post.publishedURL = asset.fileProperties.publishedURL;
+    //     post.file = await this.bldr.asset.getImageFile(asset.id);
+    // }
+
+    return post
+}
 /**
  * Method to format API response from SFMC into minimum required POST/PUT JSON objects
  * Updates Category object with full folder paths
@@ -24,68 +75,25 @@ interface BLDR_Folder {
  */
 const formatContentBuilderAssets = async (
     results: SFMC_Content_Builder_Asset, folders: BLDR_Folder[]) => {
+    const formattedAssets = [];
     if (
         Array.isArray(results) &&
         results.length !== 0
     ) {
-        const formattedAssets = [];
-
         for (const r in results) {
             const asset = results[r];
-
-            // Generate new bldrId for asset
-            const bldrId = guid();
-
-            // Find Compiled Folder Path from Folders Array
-            const findAssetsFolderObject = folders.find(
-                ({ ID }) => ID === asset.category.id
-            );
-
-            // Set Assets folderPath or initiate as blank
-            const folderPath = findAssetsFolderObject ? findAssetsFolderObject.FolderPath : '';
-            // Create JSON structure for new asset post
-            let post: BLDR_SFMC_Content_Builder_Asset = {
-                id: asset.id,
-                bldrId,
-                name: asset.name,
-                customerKey: asset.customerKey,
-                assetType: asset.assetType,
-                category: {
-                    id: asset.category.id,
-                    name: asset.category.name,
-                    parentId: asset.category.parentId,
-                    folderPath
-                }
-            };
-
-            if (asset.content) {
-                post.content = asset.content;
-            }
-            if (asset.meta) {
-                post.meta = asset.meta;
-            }
-            if (asset.slots) {
-                post.slots = asset.slots;
-            }
-            if (asset.views) {
-                post.views = asset.views;
-            }
-
-            // if (asset.assetType.displayName === 'Image') {
-            //     post.name =
-            //         asset.name.indexOf('.') === -1
-            //             ? asset.name
-            //             : asset.name.substring(0, asset.name.indexOf('.'));
-            //     post.publishedURL = asset.fileProperties.publishedURL;
-            //     post.file = await this.bldr.asset.getImageFile(asset.id);
-            // }
-
+            const post = setAssetPostObject(asset, folders)
             formattedAssets.push(post);
         }
-
-        return formattedAssets;
+    } else {
+        const post = setAssetPostObject(results, folders)
+        formattedAssets.push(post);
     }
+
+    return formattedAssets;
 }
+
+
 
 export {
     formatContentBuilderAssets
