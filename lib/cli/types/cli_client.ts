@@ -4,5 +4,6 @@ export interface CLI_Client {
         searchAssets: Function;
         gatherAssetsByCategoryId: Function;
         gatherAssetById: Function;
+        updateContentBuilderAssetContent: Function;
     };
 }

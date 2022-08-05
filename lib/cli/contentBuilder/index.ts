@@ -239,11 +239,41 @@ export class ContentBuilder {
             }) || []
 
             const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
-            const formattedAssetResponse = assetResponse &&  await formatContentBuilderAssets(assetResponse, buildFolderPaths.folders)
+            const formattedAssetResponse = assetResponse && await formatContentBuilderAssets(assetResponse, buildFolderPaths.folders)
             return formattedAssetResponse || []
 
         } catch (err: any) {
             return err.message
         }
     }
+
+    /**
+     *
+     * @param asset
+     * @param content
+     * @returns
+     */
+    updateContentBuilderAssetContent = (asset: any, content: string) => {
+        const assetType = asset.assetType && asset.assetType.name || null;
+
+        switch (assetType) {
+            case 'webpage':
+            case 'htmlemail':
+                asset.views.html.content = content;
+                break;
+            case 'codesnippetblock':
+            case 'htmlblock':
+            case 'jscoderesource':
+                asset.content = content;
+                break;
+            case 'textonlyemail':
+                asset.views.text.content = content;
+                break;
+            default:
+        }
+
+        return asset;
+    };
+
+
 }

@@ -14,6 +14,13 @@ interface BLDR_Folder {
     FolderPath?: string;
 }
 
+/**
+ * Format raw API response to be slimmed down object
+ *
+ * @param asset
+ * @param folders
+ * @returns
+ */
 const setAssetPostObject = (asset: SFMC_Content_Builder_Asset, folders: BLDR_Folder[]) => {
     // Generate new bldrId for asset
     const bldrId = guid();
@@ -92,8 +99,6 @@ const formatContentBuilderAssets = async (
 
     return formattedAssets;
 }
-
-
 
 export {
     formatContentBuilderAssets
