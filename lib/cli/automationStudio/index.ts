@@ -257,6 +257,7 @@ export class AutomationStudio {
     gatherAutomationActivityDefinitions = async (automations: SFMC_Automation[] | SFMC_Automation) => {
         try {
             const automationDefinitionOutput: any[] = [];
+
             if (Array.isArray(automations)) {
                 for (const a in automations) {
                     const automation = automations[a]
