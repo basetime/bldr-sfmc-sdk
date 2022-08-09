@@ -17,7 +17,7 @@ interface SFMC_Automation {
         name: string;
         folder: string;
     };
-    schedule: {
+    schedule?: {
         scheduleStatus: string;
     },
     steps: {

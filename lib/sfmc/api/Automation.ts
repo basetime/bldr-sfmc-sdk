@@ -67,7 +67,7 @@ export class Automation {
      * @param {number[]} categoryIds
      * @returns
      */
-    async getAutomationsByCategoryIds(
+    async getAssetsByFolderArray(
         categoryIds: number[]
     ): Promise<object[]> {
         let result = [];

@@ -48,15 +48,18 @@ const setAssetPostObject = (asset: SFMC_Automation, folders: BLDR_Folder[]) => {
         type: asset.type,
         statusId: asset.statusId,
         status: asset.status,
-        schedule: {
-            scheduleStatus: asset.schedule.scheduleStatus
-        },
         steps: asset.steps,
         assetType: {
             name: 'automation',
-            folder:'Automation Studio/my automations'
+            folder: 'Automation Studio/my automations'
         }
     };
+
+    if (asset.schedule && asset.schedule.scheduleStatus) {
+        post.schedule = {
+            scheduleStatus: asset.schedule.scheduleStatus
+        }
+    }
 
     return post
 }

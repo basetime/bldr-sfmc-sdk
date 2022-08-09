@@ -168,21 +168,12 @@ export class AutomationStudio {
     }) => {
         try {
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(request)
-            const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
-                return {
-                    ID: folder.ID,
-                    Name: folder.Name,
-                    ContentType: folder.ContentType,
-                    ParentFolder: {
-                        Name: folder.ParentFolder.Name,
-                        ID: folder.ParentFolder.ID
-                    }
-                }
-            }) || []
+            const buildFolderPaths = await buildFolderPathsSoap(folderResponse)
+            const isolateFolderIds = buildFolderPaths && buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => folder.Name !== 'my automations' && folder.ID).filter(Boolean)
+            const collectAutomationKeys = await this.sfmc.automation.getAssetsByFolderArray(isolateFolderIds)
+            const isolateAutomationKeys = collectAutomationKeys && collectAutomationKeys.length && collectAutomationKeys.map((asset: { id: string; }) => asset.id)
 
-            const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
-            const isolateFolderIds = buildFolderPaths && buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => folder.Name !== 'Content Builder' && folder.ID).filter(Boolean)
-            const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds)
+            const assetResponse = isolateAutomationKeys && isolateAutomationKeys.length && await this.sfmc.automation.getAutomationsByKey(isolateAutomationKeys)
 
             if (
                 assetResponse &&
@@ -193,8 +184,15 @@ export class AutomationStudio {
                 throw new Error(assetResponse.response.statusText)
             }
 
-            const formattedAssetResponse = assetResponse && assetResponse.items && buildFolderPaths && await formatAutomation(assetResponse.items, buildFolderPaths.folders)
-            return formattedAssetResponse || []
+            const formattedAssetResponse = assetResponse && assetResponse.length && buildFolderPaths && await formatAutomation(assetResponse, buildFolderPaths.folders)
+            const formattedAutomationDefinitions: any = await this.gatherAutomationActivityDefinitions(formattedAssetResponse)
+            const formattedAutomationDependencies: any = formattedAutomationDefinitions && await this.gatherAutomationActivityDependencies(formattedAutomationDefinitions)
+
+            return {
+                formattedAssetResponse,
+                formattedAutomationDefinitions,
+                formattedAutomationDependencies
+            }
 
         } catch (err: any) {
             return err.message

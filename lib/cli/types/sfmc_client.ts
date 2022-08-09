@@ -28,7 +28,8 @@ export interface SFMC_Client {
     automation: {
         searchAutomations: Function;
         getAutomationByKey: Function;
-        gatherAssetsByCategoryId: Function;
+        getAutomationsByKey: Function;
+        getAssetsByFolderArray: Function;
         gatherAssetById: Function;
         getAutomationActivity: Function;
         getAutomationActivities: Function;
