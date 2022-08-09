@@ -4,7 +4,7 @@ export interface SFMC_SOAP_Folder {
         CreatedBy: number;
         ModifiedBy: number;
         EnterpriseID: number;
-    },
+    };
     PartnerKey: string;
     CreatedDate: string;
     ModifiedDate: string;
@@ -14,7 +14,7 @@ export interface SFMC_SOAP_Folder {
     ParentFolder: {
         PartnerKey: string;
         ID: number;
-        ObjectID: string
+        ObjectID: string;
         CustomerKey: string;
         Name: string;
         Description: string;
@@ -22,7 +22,7 @@ export interface SFMC_SOAP_Folder {
         IsActive: Boolean;
         IsEditable: Boolean;
         AllowChildren: Boolean;
-    },
+    };
     Name: string;
     Description: string;
     ContentType: string;

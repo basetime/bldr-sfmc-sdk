@@ -1,5 +1,5 @@
-import { SFMC_Automation } from "../../../types/bldr_assets/sfmc_automation"
-import { guid } from "../..";
+import { SFMC_Automation } from '../../../types/bldr_assets/sfmc_automation';
+import { guid } from '../..';
 
 interface BLDR_Folder {
     ID: number;
@@ -8,7 +8,7 @@ interface BLDR_Folder {
     ParentFolder: {
         Name?: string;
         ID: number;
-    },
+    };
     FolderPath?: string;
 }
 
@@ -29,8 +29,12 @@ const setAssetPostObject = (asset: SFMC_Automation, folders: BLDR_Folder[]) => {
     );
 
     // Set Assets folderPath or initiate as blank
-    const folderPath = findAssetsFolderObject ? findAssetsFolderObject.FolderPath : '';
-    const folderName = findAssetsFolderObject ? findAssetsFolderObject.Name : '';
+    const folderPath = findAssetsFolderObject
+        ? findAssetsFolderObject.FolderPath
+        : '';
+    const folderName = findAssetsFolderObject
+        ? findAssetsFolderObject.Name
+        : '';
 
     // Create JSON structure for new asset post
     let post: SFMC_Automation = {
@@ -41,7 +45,7 @@ const setAssetPostObject = (asset: SFMC_Automation, folders: BLDR_Folder[]) => {
         categoryId: asset.categoryId,
         category: {
             folderPath,
-            name: folderName
+            name: folderName,
         },
         description: asset.description,
         typeId: asset.typeId,
@@ -51,18 +55,18 @@ const setAssetPostObject = (asset: SFMC_Automation, folders: BLDR_Folder[]) => {
         steps: asset.steps,
         assetType: {
             name: 'automation',
-            folder: 'Automation Studio/my automations'
-        }
+            folder: 'Automation Studio/my automations',
+        },
     };
 
     if (asset.schedule && asset.schedule.scheduleStatus) {
         post.schedule = {
-            scheduleStatus: asset.schedule.scheduleStatus
-        }
+            scheduleStatus: asset.schedule.scheduleStatus,
+        };
     }
 
-    return post
-}
+    return post;
+};
 /**
  * Method to format API response from SFMC into minimum required POST/PUT JSON objects
  * Updates Category object with full folder paths
@@ -73,25 +77,22 @@ const setAssetPostObject = (asset: SFMC_Automation, folders: BLDR_Folder[]) => {
  * @returns {object} Array of formatted asset payloads
  */
 const formatAutomation = async (
-    results: SFMC_Automation, folders: BLDR_Folder[]) => {
+    results: SFMC_Automation,
+    folders: BLDR_Folder[]
+) => {
     const formattedAssets = [];
-    if (
-        Array.isArray(results) &&
-        results.length !== 0
-    ) {
+    if (Array.isArray(results) && results.length !== 0) {
         for (const r in results) {
             const asset = results[r];
-            const post = setAssetPostObject(asset, folders)
+            const post = setAssetPostObject(asset, folders);
             formattedAssets.push(post);
         }
     } else {
-        const post = setAssetPostObject(results, folders)
+        const post = setAssetPostObject(results, folders);
         formattedAssets.push(post);
     }
 
     return formattedAssets;
-}
+};
 
-export {
-    formatAutomation
-}
+export { formatAutomation };

@@ -67,9 +67,7 @@ export class Automation {
      * @param {number[]} categoryIds
      * @returns
      */
-    async getAssetsByFolderArray(
-        categoryIds: number[]
-    ): Promise<object[]> {
+    async getAssetsByFolderArray(categoryIds: number[]): Promise<object[]> {
         let result = [];
 
         if (!categoryIds || !Array.isArray(categoryIds)) {
@@ -354,7 +352,6 @@ export class Automation {
             return handleError(err);
         }
     }
-
 
     // TODO Test and document the various payloads
     async postAutomationAsset(asset: any) {

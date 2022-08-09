@@ -12,14 +12,14 @@ interface SFMC_Automation {
     category: {
         folderPath?: string;
         name: string;
-    }
+    };
     assetType: {
         name: string;
         folder: string;
     };
     schedule?: {
         scheduleStatus: string;
-    },
+    };
     steps: {
         id: string;
         name: string;
@@ -28,12 +28,10 @@ interface SFMC_Automation {
             id: string;
             name: string;
             activityObjectId: string;
-            objectTypeId: number
-            displayOrder: number
+            objectTypeId: number;
+            displayOrder: number;
         }[];
-    }[]
+    }[];
 }
 
-export {
-    SFMC_Automation
-}
+export { SFMC_Automation };

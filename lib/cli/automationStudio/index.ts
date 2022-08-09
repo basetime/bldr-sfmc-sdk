@@ -1,12 +1,11 @@
-import { SFMC_Client } from "../types/sfmc_client";
-import {CLI_Client} from "../types/cli_client"
-import { SFMC_SOAP_Folder } from "../../sfmc/types/objects/sfmc_soap_folders"
-import { buildFolderPathsSoap } from "../utils/BuildSoapFolderObjects";
-import { formatAutomation } from "../utils/_context/automationStudio/FormatAutomationAsset";
-import { SFMC_Automation } from "../types/bldr_assets/sfmc_automation";
-import { MappingByActivityTypeId } from "../../sfmc/utils/automationActivities";
-import { guid } from "../utils";
-
+import { SFMC_Client } from '../types/sfmc_client';
+import { CLI_Client } from '../types/cli_client';
+import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
+import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
+import { formatAutomation } from '../utils/_context/automationStudio/FormatAutomationAsset';
+import { SFMC_Automation } from '../types/bldr_assets/sfmc_automation';
+import { MappingByActivityTypeId } from '../../sfmc/utils/automationActivities';
+import { guid } from '../utils';
 
 export class AutomationStudio {
     sfmc: SFMC_Client;
@@ -14,7 +13,7 @@ export class AutomationStudio {
 
     constructor(sfmc: SFMC_Client, contentBuilder: any) {
         this.sfmc = sfmc;
-        this.contentBuilder = contentBuilder
+        this.contentBuilder = contentBuilder;
     }
     /**
      *
@@ -49,36 +48,40 @@ export class AutomationStudio {
         searchKey: string;
         searchTerm: string;
     }) => {
-        const response = await this.sfmc.folder.search(request)
+        const response = await this.sfmc.folder.search(request);
         if (response.OverallStatus !== 'OK') {
             return response.OverallStatus;
         }
 
-        const formattedResponse = response && response.Results.map((
-            folder: {
-                Name: string;
-                CreatedDate: string;
-                ModifiedDate: string;
-                ID: number;
-                ParentFolder: {
-                    Name: string;
-                    ID: string;
-                }
-            }) => {
-            return {
-                ID: folder.ID,
-                Name: folder.Name,
-                CreatedDate: folder.CreatedDate,
-                ModifiedDate: folder.ModifiedDate,
-                ParentFolder: {
-                    Name: folder.ParentFolder.Name,
-                    ID: folder.ParentFolder.ID,
-                }
-            }
-        }) || []
+        const formattedResponse =
+            (response &&
+                response.Results.map(
+                    (folder: {
+                        Name: string;
+                        CreatedDate: string;
+                        ModifiedDate: string;
+                        ID: number;
+                        ParentFolder: {
+                            Name: string;
+                            ID: string;
+                        };
+                    }) => {
+                        return {
+                            ID: folder.ID,
+                            Name: folder.Name,
+                            CreatedDate: folder.CreatedDate,
+                            ModifiedDate: folder.ModifiedDate,
+                            ParentFolder: {
+                                Name: folder.ParentFolder.Name,
+                                ID: folder.ParentFolder.ID,
+                            },
+                        };
+                    }
+                )) ||
+            [];
 
-        return formattedResponse
-    }
+        return formattedResponse;
+    };
     /**
      *
      * @param request.searchKey
@@ -108,33 +111,37 @@ export class AutomationStudio {
      */
     searchAssets = async (request: {
         searchKey: string;
-        searchTerm: string
+        searchTerm: string;
     }) => {
+        const response = await this.sfmc.automation.searchAutomations(request);
+        const formattedResponse =
+            (response &&
+                response.Results &&
+                response.Results.map(
+                    (asset: {
+                        Name: string;
+                        Description: string;
+                        ObjectID: string;
+                        Status: number;
+                        CreatedDate: string;
+                        ModifiedDate: string;
+                        IsActive: Boolean;
+                    }) => {
+                        return {
+                            ObjectId: asset.ObjectID,
+                            Name: asset.Name,
+                            Description: asset.Description,
+                            Status: asset.Status,
+                            CreatedDate: asset.CreatedDate,
+                            ModifiedDate: asset.ModifiedDate,
+                            IsActive: asset.IsActive,
+                        };
+                    }
+                )) ||
+            [];
 
-        const response = await this.sfmc.automation.searchAutomations(request)
-        const formattedResponse = response && response.Results && response.Results.map((
-            asset: {
-                Name: string;
-                Description: string;
-                ObjectID: string;
-                Status: number;
-                CreatedDate: string;
-                ModifiedDate: string;
-                IsActive: Boolean;
-            }) => {
-            return {
-                ObjectId: asset.ObjectID,
-                Name: asset.Name,
-                Description: asset.Description,
-                Status: asset.Status,
-                CreatedDate: asset.CreatedDate,
-                ModifiedDate: asset.ModifiedDate,
-                IsActive: asset.IsActive
-            }
-        }) || []
-
-        return formattedResponse
-    }
+        return formattedResponse;
+    };
     /**
      *
      * @param request.searchKey
@@ -167,13 +174,33 @@ export class AutomationStudio {
         categoryId: number;
     }) => {
         try {
-            const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(request)
-            const buildFolderPaths = await buildFolderPathsSoap(folderResponse)
-            const isolateFolderIds = buildFolderPaths && buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => folder.Name !== 'my automations' && folder.ID).filter(Boolean)
-            const collectAutomationKeys = await this.sfmc.automation.getAssetsByFolderArray(isolateFolderIds)
-            const isolateAutomationKeys = collectAutomationKeys && collectAutomationKeys.length && collectAutomationKeys.map((asset: { id: string; }) => asset.id)
+            const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
+                request
+            );
+            const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+            const isolateFolderIds =
+                buildFolderPaths &&
+                buildFolderPaths.folders
+                    .map(
+                        (folder: SFMC_SOAP_Folder) =>
+                            folder.Name !== 'my automations' && folder.ID
+                    )
+                    .filter(Boolean);
+            const collectAutomationKeys =
+                await this.sfmc.automation.getAssetsByFolderArray(
+                    isolateFolderIds
+                );
+            const isolateAutomationKeys =
+                collectAutomationKeys &&
+                collectAutomationKeys.length &&
+                collectAutomationKeys.map((asset: { id: string }) => asset.id);
 
-            const assetResponse = isolateAutomationKeys && isolateAutomationKeys.length && await this.sfmc.automation.getAutomationsByKey(isolateAutomationKeys)
+            const assetResponse =
+                isolateAutomationKeys &&
+                isolateAutomationKeys.length &&
+                (await this.sfmc.automation.getAutomationsByKey(
+                    isolateAutomationKeys
+                ));
 
             if (
                 assetResponse &&
@@ -181,24 +208,36 @@ export class AutomationStudio {
                 assetResponse.response.status &&
                 !assetResponse.response.status.test(/^2/)
             ) {
-                throw new Error(assetResponse.response.statusText)
+                throw new Error(assetResponse.response.statusText);
             }
 
-            const formattedAssetResponse = assetResponse && assetResponse.length && buildFolderPaths && await formatAutomation(assetResponse, buildFolderPaths.folders)
-            const formattedAutomationDefinitions: any = await this.gatherAutomationActivityDefinitions(formattedAssetResponse)
-            const formattedAutomationDependencies: any = formattedAutomationDefinitions && await this.gatherAutomationActivityDependencies(formattedAutomationDefinitions)
+            const formattedAssetResponse =
+                assetResponse &&
+                assetResponse.length &&
+                buildFolderPaths &&
+                (await formatAutomation(
+                    assetResponse,
+                    buildFolderPaths.folders
+                ));
+            const formattedAutomationDefinitions: any =
+                await this.gatherAutomationActivityDefinitions(
+                    formattedAssetResponse
+                );
+            const formattedAutomationDependencies: any =
+                formattedAutomationDefinitions &&
+                (await this.gatherAutomationActivityDependencies(
+                    formattedAutomationDefinitions
+                ));
 
             return {
                 formattedAssetResponse,
                 formattedAutomationDefinitions,
-                formattedAutomationDependencies
-            }
-
+                formattedAutomationDependencies,
+            };
         } catch (err: any) {
-            return err.message
+            return err.message;
         }
-
-    }
+    };
     /**
      *
      * @param objectId
@@ -206,9 +245,11 @@ export class AutomationStudio {
     gatherAssetById = async (objectId: string) => {
         try {
             if (!objectId) {
-                throw new Error('objectId is required')
+                throw new Error('objectId is required');
             }
-            const assetResponse = await this.sfmc.automation.getAutomationByKey(objectId)
+            const assetResponse = await this.sfmc.automation.getAutomationByKey(
+                objectId
+            );
 
             if (
                 assetResponse &&
@@ -216,84 +257,115 @@ export class AutomationStudio {
                 assetResponse.response.status &&
                 !assetResponse.response.status.test(/^2/)
             ) {
-                throw new Error(assetResponse.response.statusText)
+                throw new Error(assetResponse.response.statusText);
             }
 
-            const categoryId = assetResponse && assetResponse.categoryId
-            const folderResponse = await this.sfmc.folder.getParentFoldersRecursive({
-                contentType: 'automations',
-                categoryId
-            })
+            const categoryId = assetResponse && assetResponse.categoryId;
+            const folderResponse =
+                await this.sfmc.folder.getParentFoldersRecursive({
+                    contentType: 'automations',
+                    categoryId,
+                });
 
-            const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
-                return {
-                    ID: folder.ID,
-                    Name: folder.Name,
-                    ContentType: folder.ContentType,
-                    ParentFolder: {
-                        Name: folder.ParentFolder.Name || 'my automations',
-                        ID: folder.ParentFolder.ID
-                    }
-                }
-            }) || []
+            const simplifiedFolderResponse =
+                (folderResponse &&
+                    folderResponse.map((folder: SFMC_SOAP_Folder) => {
+                        return {
+                            ID: folder.ID,
+                            Name: folder.Name,
+                            ContentType: folder.ContentType,
+                            ParentFolder: {
+                                Name:
+                                    folder.ParentFolder.Name ||
+                                    'my automations',
+                                ID: folder.ParentFolder.ID,
+                            },
+                        };
+                    })) ||
+                [];
 
-            const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
-            const formattedAssetResponse = assetResponse && buildFolderPaths && await formatAutomation(assetResponse, buildFolderPaths.folders)
-            const formattedAutomationDefinitions: any = await this.gatherAutomationActivityDefinitions(formattedAssetResponse)
-            const formattedAutomationDependencies: any = formattedAutomationDefinitions && await this.gatherAutomationActivityDependencies(formattedAutomationDefinitions)
+            const buildFolderPaths = await buildFolderPathsSoap(
+                simplifiedFolderResponse
+            );
+            const formattedAssetResponse =
+                assetResponse &&
+                buildFolderPaths &&
+                (await formatAutomation(
+                    assetResponse,
+                    buildFolderPaths.folders
+                ));
+            const formattedAutomationDefinitions: any =
+                await this.gatherAutomationActivityDefinitions(
+                    formattedAssetResponse
+                );
+            const formattedAutomationDependencies: any =
+                formattedAutomationDefinitions &&
+                (await this.gatherAutomationActivityDependencies(
+                    formattedAutomationDefinitions
+                ));
 
             return {
                 formattedAssetResponse,
                 formattedAutomationDefinitions,
-                formattedAutomationDependencies
-            }
-
+                formattedAutomationDependencies,
+            };
         } catch (err: any) {
-            return err.message
+            return err.message;
         }
-    }
+    };
     /**
      *
      * @param automations
      */
-    gatherAutomationActivityDefinitions = async (automations: SFMC_Automation[] | SFMC_Automation) => {
+    gatherAutomationActivityDefinitions = async (
+        automations: SFMC_Automation[] | SFMC_Automation
+    ) => {
         try {
             const automationDefinitionOutput: any[] = [];
 
             if (Array.isArray(automations)) {
                 for (const a in automations) {
-                    const automation = automations[a]
-                    const automationActivityDefinitions: any[] = await this.sfmc.automation.getAutomationActivities(automation)
+                    const automation = automations[a];
+                    const automationActivityDefinitions: any[] =
+                        await this.sfmc.automation.getAutomationActivities(
+                            automation
+                        );
 
-                    automationActivityDefinitions && automationActivityDefinitions.forEach(definition => {
-                        definition.bldrId = guid();
-                        automationDefinitionOutput.push(definition)
-                    })
+                    automationActivityDefinitions &&
+                        automationActivityDefinitions.forEach((definition) => {
+                            definition.bldrId = guid();
+                            automationDefinitionOutput.push(definition);
+                        });
                 }
             } else {
-                const automationActivityDefinitions: any[] = await this.sfmc.automation.getAutomationActivities(automations)
-                automationActivityDefinitions && automationActivityDefinitions.forEach(definition => {
-                    definition.bldrId = guid();
-                    automationDefinitionOutput.push(definition)
-                })
+                const automationActivityDefinitions: any[] =
+                    await this.sfmc.automation.getAutomationActivities(
+                        automations
+                    );
+                automationActivityDefinitions &&
+                    automationActivityDefinitions.forEach((definition) => {
+                        definition.bldrId = guid();
+                        automationDefinitionOutput.push(definition);
+                    });
             }
 
-            return automationDefinitionOutput
-
+            return automationDefinitionOutput;
         } catch (err) {
             console.error(err);
         }
-    }
+    };
 
     /**
      *
      * @param automationDefinitions
      */
-    gatherAutomationActivityDependencies = async (automationDefinitions: any[]) => {
+    gatherAutomationActivityDependencies = async (
+        automationDefinitions: any[]
+    ) => {
         const formattedAutomationDependencies: {
             automationStudio?: any[];
             contentBuilder?: any[];
-            emailStudio?: any[],
+            emailStudio?: any[];
         } = {};
 
         for (const a in automationDefinitions) {
@@ -303,14 +375,24 @@ export class AutomationStudio {
             switch (assetTypeName) {
                 case 'userinitiatedsend':
                     formattedAutomationDependencies.contentBuilder = [];
-                    const legacyId = automationDefinitions[a].Email && automationDefinitions[a].Email.ID
-                    const emailAssetResponse = legacyId && await this.contentBuilder.gatherAssetById(legacyId, true)
-                    emailAssetResponse && emailAssetResponse.length && formattedAutomationDependencies.contentBuilder.push(...emailAssetResponse)
+                    const legacyId =
+                        automationDefinitions[a].Email &&
+                        automationDefinitions[a].Email.ID;
+                    const emailAssetResponse =
+                        legacyId &&
+                        (await this.contentBuilder.gatherAssetById(
+                            legacyId,
+                            true
+                        ));
+                    emailAssetResponse &&
+                        emailAssetResponse.length &&
+                        formattedAutomationDependencies.contentBuilder.push(
+                            ...emailAssetResponse
+                        );
                     break;
             }
         }
 
-        return formattedAutomationDependencies || {}
-    }
-
+        return formattedAutomationDependencies || {};
+    };
 }

@@ -63,26 +63,23 @@ export class ContentBuilderAsset {
                 throw new Error('folderIdArray argument must be an array');
             }
 
-            return this.client.rest.post(
-                '/asset/v1/content/assets/query',
-                {
-                    page: {
-                        page: 1,
-                        pageSize: 200,
+            return this.client.rest.post('/asset/v1/content/assets/query', {
+                page: {
+                    page: 1,
+                    pageSize: 200,
+                },
+                query: {
+                    property: 'category.id',
+                    simpleOperator: 'in',
+                    value: folderIdArray,
+                },
+                sort: [
+                    {
+                        property: 'id',
+                        direction: 'ASC',
                     },
-                    query: {
-                        property: 'category.id',
-                        simpleOperator: 'in',
-                        value: folderIdArray,
-                    },
-                    sort: [
-                        {
-                            property: 'id',
-                            direction: 'ASC',
-                        },
-                    ],
-                }
-            );
+                ],
+            });
         } catch (err: any) {
             return handleError(err);
         }
@@ -145,10 +142,7 @@ export class ContentBuilderAsset {
      * @param {string} request.searchTerm
      * @returns
      */
-    async searchAssets(request: {
-        searchKey: string;
-        searchTerm: string
-    }) {
+    async searchAssets(request: { searchKey: string; searchTerm: string }) {
         try {
             return this.client.rest.post('/asset/v1/content/assets/query', {
                 page: {

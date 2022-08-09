@@ -1,7 +1,7 @@
-import { SFMC_Content_Builder_Asset } from "../../../../sfmc/types/objects/sfmc_content_builder_assets";
-import { BLDR_SFMC_Content_Builder_Asset } from "../../../types/bldr_assets/sfmc_content_builder_asset"
+import { SFMC_Content_Builder_Asset } from '../../../../sfmc/types/objects/sfmc_content_builder_assets';
+import { BLDR_SFMC_Content_Builder_Asset } from '../../../types/bldr_assets/sfmc_content_builder_asset';
 
-import { guid } from "../../index";
+import { guid } from '../../index';
 
 interface BLDR_Folder {
     ID: number;
@@ -10,7 +10,7 @@ interface BLDR_Folder {
     ParentFolder: {
         Name?: string;
         ID: number;
-    },
+    };
     FolderPath?: string;
 }
 
@@ -21,7 +21,10 @@ interface BLDR_Folder {
  * @param folders
  * @returns
  */
-const setAssetPostObject = (asset: SFMC_Content_Builder_Asset, folders: BLDR_Folder[]) => {
+const setAssetPostObject = (
+    asset: SFMC_Content_Builder_Asset,
+    folders: BLDR_Folder[]
+) => {
     // Generate new bldrId for asset
     const bldrId = guid();
 
@@ -31,7 +34,9 @@ const setAssetPostObject = (asset: SFMC_Content_Builder_Asset, folders: BLDR_Fol
     );
 
     // Set Assets folderPath or initiate as blank
-    const folderPath = findAssetsFolderObject ? findAssetsFolderObject.FolderPath : '';
+    const folderPath = findAssetsFolderObject
+        ? findAssetsFolderObject.FolderPath
+        : '';
     // Create JSON structure for new asset post
     let post: BLDR_SFMC_Content_Builder_Asset = {
         id: asset.id,
@@ -43,8 +48,8 @@ const setAssetPostObject = (asset: SFMC_Content_Builder_Asset, folders: BLDR_Fol
             id: asset.category.id,
             name: asset.category.name,
             parentId: asset.category.parentId,
-            folderPath
-        }
+            folderPath,
+        },
     };
 
     if (asset.content) {
@@ -69,8 +74,8 @@ const setAssetPostObject = (asset: SFMC_Content_Builder_Asset, folders: BLDR_Fol
     //     post.file = await this.bldr.asset.getImageFile(asset.id);
     // }
 
-    return post
-}
+    return post;
+};
 /**
  * Method to format API response from SFMC into minimum required POST/PUT JSON objects
  * Updates Category object with full folder paths
@@ -81,25 +86,22 @@ const setAssetPostObject = (asset: SFMC_Content_Builder_Asset, folders: BLDR_Fol
  * @returns {object} Array of formatted asset payloads
  */
 const formatContentBuilderAssets = async (
-    results: SFMC_Content_Builder_Asset, folders: BLDR_Folder[]) => {
+    results: SFMC_Content_Builder_Asset,
+    folders: BLDR_Folder[]
+) => {
     const formattedAssets = [];
-    if (
-        Array.isArray(results) &&
-        results.length !== 0
-    ) {
+    if (Array.isArray(results) && results.length !== 0) {
         for (const r in results) {
             const asset = results[r];
-            const post = setAssetPostObject(asset, folders)
+            const post = setAssetPostObject(asset, folders);
             formattedAssets.push(post);
         }
     } else {
-        const post = setAssetPostObject(results, folders)
+        const post = setAssetPostObject(results, folders);
         formattedAssets.push(post);
     }
 
     return formattedAssets;
-}
+};
 
-export {
-    formatContentBuilderAssets
-}
+export { formatContentBuilderAssets };

@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 
-const guid = () => uuidv4()
+const guid = () => uuidv4();
 
 /**
  *
@@ -8,9 +8,8 @@ const guid = () => uuidv4()
  * @param key
  * @returns
  */
- const uniqueArrayByKey = (array: any[], key: string) => [...new Map(array.map((item) => [item[key], item])).values()];
+const uniqueArrayByKey = (array: any[], key: string) => [
+    ...new Map(array.map((item) => [item[key], item])).values(),
+];
 
-export {
-    guid,
-    uniqueArrayByKey
-}
+export { guid, uniqueArrayByKey };

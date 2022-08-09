@@ -123,25 +123,21 @@ export class Folder {
             const response: {
                 OverallStatus: string;
                 Results: SFMC_SOAP_Folder[];
-            } = await this.client.soap.retrieve(
-                'DataFolder',
-                DataFolder,
-                {
-                    filter: {
-                        leftOperand: {
-                            leftOperand: 'ContentType',
-                            operator: 'equals',
-                            rightOperand: request.contentType,
-                        },
-                        operator: 'AND',
-                        rightOperand: {
-                            leftOperand: 'ParentFolder.ID',
-                            operator: 'equals',
-                            rightOperand: request.parentId,
-                        },
+            } = await this.client.soap.retrieve('DataFolder', DataFolder, {
+                filter: {
+                    leftOperand: {
+                        leftOperand: 'ContentType',
+                        operator: 'equals',
+                        rightOperand: request.contentType,
                     },
-                }
-            );
+                    operator: 'AND',
+                    rightOperand: {
+                        leftOperand: 'ParentFolder.ID',
+                        operator: 'equals',
+                        rightOperand: request.parentId,
+                    },
+                },
+            });
 
             if (response && response.OverallStatus !== 'OK') {
                 throw new Error('Unable to Retrieve Folders');
@@ -192,7 +188,7 @@ export class Folder {
         const initialCategory = await this.getFolder(request);
 
         if (initialCategory.OverallStatus !== 'OK') {
-            console.log(initialCategory)
+            console.log(initialCategory);
         }
 
         if (
@@ -211,13 +207,15 @@ export class Folder {
 
         if (parentId) {
             do {
-                const parentRequest = parentId && await this.getFolder({
-                    contentType: request.contentType,
-                    categoryId: parentId,
-                });
+                const parentRequest =
+                    parentId &&
+                    (await this.getFolder({
+                        contentType: request.contentType,
+                        categoryId: parentId,
+                    }));
 
                 if (parentRequest && parentRequest.OverallStatus !== 'OK') {
-                    console.log(parentRequest)
+                    console.log(parentRequest);
                 }
 
                 if (
@@ -236,9 +234,8 @@ export class Folder {
                         (parentResult &&
                             parentResult.ParentFolder &&
                             parentResult.ParentFolder.ID) ||
-                            null;
+                        null;
                 }
-
             } while (!stopFolderId || parentId === stopFolderId);
         }
         return results;
@@ -287,7 +284,11 @@ export class Folder {
                     parentId: categoryId,
                 });
 
-                if (subfolderRequest && Array.isArray(subfolderRequest) && subfolderRequest.length > 0) {
+                if (
+                    subfolderRequest &&
+                    Array.isArray(subfolderRequest) &&
+                    subfolderRequest.length > 0
+                ) {
                     let subfolderIdArray = subfolderRequest.map(
                         (folder: { ID: number }) => folder.ID
                     );
@@ -300,7 +301,7 @@ export class Folder {
 
             return results;
         } catch (err) {
-            console.log(err)
+            console.log(err);
             return handleError(err);
         }
     }

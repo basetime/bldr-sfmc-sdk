@@ -1,4 +1,3 @@
-
 const MappingByAssetType = (assetType: string) => {
     let out;
 
@@ -23,12 +22,10 @@ const MappingByAssetType = (assetType: string) => {
             break;
 
         default:
-            out = null
+            out = null;
     }
 
     return out;
 };
 
-export {
-    MappingByAssetType
-}
+export { MappingByAssetType };

@@ -1,1 +1,1 @@
-declare module '@basetime/bldr-sfmc-sdk'
+declare module '@basetime/bldr-sfmc-sdk';

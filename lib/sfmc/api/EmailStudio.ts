@@ -39,7 +39,7 @@ export class EmailStudio {
             return handleError(err);
         }
     }
-       /**
+    /**
      * Retrieve Email Send Definition
      *
      * @param {string} activityObjectId
@@ -156,5 +156,4 @@ export class EmailStudio {
             return handleError(err);
         }
     }
-
 }

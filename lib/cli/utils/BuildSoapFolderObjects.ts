@@ -1,19 +1,21 @@
-import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders'
+import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
 import { uniqueArrayByKey } from '.';
 
 const buildFolderPathsSoap = async (folderResponse: any[]) => {
-    const simplifiedFolders= await simplifiedFolderResponse(folderResponse)
-    const parentFolders = ['Content Builder', 'my automations']
-    let folders = await uniqueArrayByKey(simplifiedFolders, 'ID')
+    const simplifiedFolders = await simplifiedFolderResponse(folderResponse);
+    const parentFolders = ['Content Builder', 'my automations'];
+    let folders = await uniqueArrayByKey(simplifiedFolders, 'ID');
     const foldersOut = []; //object[]
     const compiledFolderPaths = [];
     let path = '';
 
     // Get parent folder and get folder ID
-    let parentFolderObject = folders.find((folder) => !!parentFolders.includes(folder.Name))
+    let parentFolderObject = folders.find(
+        (folder) => !!parentFolders.includes(folder.Name)
+    );
 
     if (!parentFolderObject) {
-        throw new Error('Unable to find parent folder')
+        throw new Error('Unable to find parent folder');
     }
 
     const rootFolder = parentFolderObject && parentFolderObject.Name;
@@ -22,17 +24,20 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
     // Add FolderPath to folder object
     parentFolderObject.FolderPath = path;
     // Add Folder Object to Output Array
-    foldersOut.push(parentFolderObject)
+    foldersOut.push(parentFolderObject);
     // Add Folder Path CompiledFolderPaths Array
-    compiledFolderPaths.push(path)
+    compiledFolderPaths.push(path);
     // Remove processed Object from Original Array
-    folders.splice(folders.findIndex((folder) => !!parentFolders.includes(rootFolder)), 1)
+    folders.splice(
+        folders.findIndex((folder) => !!parentFolders.includes(rootFolder)),
+        1
+    );
     // Reset Path String
     path = '';
 
     do {
         for (const f in folders) {
-            const folder = folders[f]
+            const folder = folders[f];
             const parentFolder = folder.ParentFolder.Name;
             let parentIsRootFolder = parentFolder === rootFolder ? true : false;
 
@@ -42,55 +47,72 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
                 // Add FolderPath to folder object
                 folder.FolderPath = path;
                 // Add Folder Object to Output Array
-                foldersOut.push(folder)
+                foldersOut.push(folder);
                 // Add Folder Path CompiledFolderPaths Array
-                compiledFolderPaths.push(path)
+                compiledFolderPaths.push(path);
                 // Remove processed Object from Original Array
-                folders.splice(folders.findIndex((orgFolder) => orgFolder.ID === folder.ID), 1)
+                folders.splice(
+                    folders.findIndex(
+                        (orgFolder) => orgFolder.ID === folder.ID
+                    ),
+                    1
+                );
                 // Reset Path String
                 path = '';
             } else {
-                let parentId = folder.ParentFolder.ID
-                let compiledParentFolder = foldersOut.find((compiledFolder) => compiledFolder.ID === parentId)
+                let parentId = folder.ParentFolder.ID;
+                let compiledParentFolder = foldersOut.find(
+                    (compiledFolder) => compiledFolder.ID === parentId
+                );
 
                 if (compiledParentFolder) {
                     // Add Foot Folder to Path String
-                    path += folder && folder.Name && `${compiledParentFolder.FolderPath}/${folder.Name}`;
+                    path +=
+                        folder &&
+                        folder.Name &&
+                        `${compiledParentFolder.FolderPath}/${folder.Name}`;
                     // Add FolderPath to folder object
                     folder.FolderPath = path;
                     // Add Folder Object to Output Array
-                    foldersOut.push(folder)
+                    foldersOut.push(folder);
                     // Add Folder Path CompiledFolderPaths Array
-                    compiledFolderPaths.push(path)
+                    compiledFolderPaths.push(path);
                     // Remove processed Object from Original Array
-                    folders.splice(folders.findIndex((orgFolder) => orgFolder.ID === folder.ID), 1)
+                    folders.splice(
+                        folders.findIndex(
+                            (orgFolder) => orgFolder.ID === folder.ID
+                        ),
+                        1
+                    );
                     // Reset Path String
                     path = '';
                 }
             }
         }
-    } while (folders.length)
+    } while (folders.length);
 
     return {
         folders: foldersOut,
-        folderPaths: compiledFolderPaths
-    }
-}
+        folderPaths: compiledFolderPaths,
+    };
+};
 
 const simplifiedFolderResponse = (folderResponse: SFMC_SOAP_Folder[]) => {
-    return folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
-        return {
-            ID: folder.ID,
-            Name: folder.Name,
-            ContentType: folder.ContentType,
-            ParentFolder: {
-                Name: folder.ParentFolder.Name,
-                ID: folder.ParentFolder.ID
-            }
-        }
-    }) || []
-}
+    return (
+        (folderResponse &&
+            folderResponse.map((folder: SFMC_SOAP_Folder) => {
+                return {
+                    ID: folder.ID,
+                    Name: folder.Name,
+                    ContentType: folder.ContentType,
+                    ParentFolder: {
+                        Name: folder.ParentFolder.Name,
+                        ID: folder.ParentFolder.ID,
+                    },
+                };
+            })) ||
+        []
+    );
+};
 
-export {
-    buildFolderPathsSoap
-}
+export { buildFolderPathsSoap };

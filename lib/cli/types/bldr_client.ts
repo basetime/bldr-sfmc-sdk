@@ -1,5 +1,5 @@
-import { SFMC_Client } from "./sfmc_client";
-import { CLI_Client } from "./cli_client";
+import { SFMC_Client } from './sfmc_client';
+import { CLI_Client } from './cli_client';
 
 export interface BLDR_Client {
     sfmc: SFMC_Client;

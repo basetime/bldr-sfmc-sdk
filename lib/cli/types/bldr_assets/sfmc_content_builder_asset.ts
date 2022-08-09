@@ -13,7 +13,7 @@ export interface BLDR_SFMC_Content_Builder_Asset {
         name: string;
         parentId: number;
         folderPath?: string;
-    }
+    };
     content?: string;
     meta?: any;
     slots?: any;

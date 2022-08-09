@@ -23,19 +23,19 @@ export interface SFMC_Content_Builder_Asset {
     };
     modifiedDate: string;
     modifiedBy: {
-        id: number
+        id: number;
         email: string;
-        name: string
-        userId: number
+        name: string;
+        userId: number;
     };
-    enterpriseId: number
-    memberId: number
+    enterpriseId: number;
+    memberId: number;
     status: {
         id: number;
-        name: string
+        name: string;
     };
     thumbnail?: {
-        thumbnailUrl: string
+        thumbnailUrl: string;
     };
     category: {
         id: number;
@@ -46,7 +46,7 @@ export interface SFMC_Content_Builder_Asset {
     views?: {
         html: {
             content: string;
-        }
+        };
     };
     content?: string;
     meta?: object;
