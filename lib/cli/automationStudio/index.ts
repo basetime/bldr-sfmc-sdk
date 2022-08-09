@@ -1,8 +1,12 @@
 import { SFMC_Client } from "../types/sfmc_client";
 import { SFMC_SOAP_Folder } from "../../sfmc/types/objects/sfmc_soap_folders"
 import { buildFolderPathsSoap } from "../utils/BuildSoapFolderObjects";
-import { formatContentBuilderAssets } from "../utils/_context/contentBuilder/FormatContentBuilderAsset"
-export class ContentBuilder {
+import { formatAutomation } from "../utils/_context/automationStudio/FormatAutomationAsset";
+import { SFMC_Automation } from "../types/bldr_assets/sfmc_automation";
+import { MappingByActivityTypeId } from "../../sfmc/utils/automationActivities";
+import { guid } from "../utils";
+
+export class AutomationStudio {
     sfmc: SFMC_Client;
 
     constructor(sfmc: SFMC_Client) {
@@ -102,31 +106,26 @@ export class ContentBuilder {
         searchKey: string;
         searchTerm: string
     }) => {
-        const response = await this.sfmc.asset.searchAssets(request)
-        const formattedResponse = response && response.items.map((
+
+        const response = await this.sfmc.automation.searchAutomations(request)
+        const formattedResponse = response && response.Results && response.Results.map((
             asset: {
-                id: number;
-                name: string;
-                assetType: {
-                    name: string;
-                };
-                createdDate: string;
-                modifiedDate: string;
-                category: {
-                    name: string;
-                    parentId: string;
-                }
+                Name: string;
+                Description: string;
+                ObjectID: string;
+                Status: number;
+                CreatedDate: string;
+                ModifiedDate: string;
+                IsActive: Boolean;
             }) => {
             return {
-                ID: asset.id,
-                Name: asset.name,
-                AssetType: asset.assetType.name,
-                CreatedDate: asset.createdDate,
-                ModifiedDate: asset.modifiedDate,
-                Category: {
-                    Name: asset.category.name,
-                    ParentId: asset.category.parentId,
-                }
+                ObjectId: asset.ObjectID,
+                Name: asset.Name,
+                Description: asset.Description,
+                Status: asset.Status,
+                CreatedDate: asset.CreatedDate,
+                ModifiedDate: asset.ModifiedDate,
+                IsActive: asset.IsActive
             }
         }) || []
 
@@ -190,7 +189,7 @@ export class ContentBuilder {
                 throw new Error(assetResponse.response.statusText)
             }
 
-            const formattedAssetResponse = assetResponse && assetResponse.items && buildFolderPaths && await formatContentBuilderAssets(assetResponse.items, buildFolderPaths.folders)
+            const formattedAssetResponse = assetResponse && assetResponse.items && buildFolderPaths && await formatAutomation(assetResponse.items, buildFolderPaths.folders)
             return formattedAssetResponse || []
 
         } catch (err: any) {
@@ -200,15 +199,15 @@ export class ContentBuilder {
     }
     /**
      *
-     * @param assetId
+     * @param objectId
      */
-    gatherAssetById = async (assetId: number) => {
+    gatherAssetById = async (objectId: string) => {
         try {
-            if (!assetId) {
-                throw new Error('assetId is required')
+            if (!objectId) {
+                throw new Error('objectId is required')
             }
 
-            const assetResponse = await this.sfmc.asset.getByAssetId(assetId)
+            const assetResponse = await this.sfmc.automation.getAutomationByKey(objectId)
 
             if (
                 assetResponse &&
@@ -219,9 +218,9 @@ export class ContentBuilder {
                 throw new Error(assetResponse.response.statusText)
             }
 
-            const categoryId = assetResponse && assetResponse.category && assetResponse.category.id;
+            const categoryId = assetResponse && assetResponse.categoryId
             const folderResponse = await this.sfmc.folder.getParentFoldersRecursive({
-                contentType: 'asset',
+                contentType: 'automations',
                 categoryId
             })
 
@@ -231,15 +230,20 @@ export class ContentBuilder {
                     Name: folder.Name,
                     ContentType: folder.ContentType,
                     ParentFolder: {
-                        Name: folder.ParentFolder.Name || 'Content Builder',
+                        Name: folder.ParentFolder.Name || 'my automations',
                         ID: folder.ParentFolder.ID
                     }
                 }
             }) || []
 
             const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
-            const formattedAssetResponse = assetResponse && buildFolderPaths && await formatContentBuilderAssets(assetResponse, buildFolderPaths.folders)
-            return formattedAssetResponse || []
+            const formattedAssetResponse = assetResponse && buildFolderPaths && await formatAutomation(assetResponse, buildFolderPaths.folders)
+            const formattedAutomationDefinitions: any = await this.gatherAutomationActivityDefinitions(formattedAssetResponse)
+
+            return {
+                formattedAssetResponse,
+                formattedAutomationDefinitions
+            }
 
         } catch (err: any) {
             return err.message
@@ -248,31 +252,33 @@ export class ContentBuilder {
 
     /**
      *
-     * @param asset
-     * @param content
-     * @returns
+     * @param automations
      */
-    updateContentBuilderAssetContent = (asset: any, content: string) => {
-        const assetType = asset.assetType && asset.assetType.name || null;
+    gatherAutomationActivityDefinitions = async (automations: SFMC_Automation[] | SFMC_Automation) => {
+        try {
+            const automationDefinitionOutput: any[] = [];
+            if (Array.isArray(automations)) {
+                for (const a in automations) {
+                    const automation = automations[a]
+                    const automationActivityDefinitions: any[] = await this.sfmc.automation.getAutomationActivities(automation)
 
-        switch (assetType) {
-            case 'webpage':
-            case 'htmlemail':
-                asset.views.html.content = content;
-                break;
-            case 'codesnippetblock':
-            case 'htmlblock':
-            case 'jscoderesource':
-                asset.content = content;
-                break;
-            case 'textonlyemail':
-                asset.views.text.content = content;
-                break;
-            default:
+                    automationActivityDefinitions && automationActivityDefinitions.forEach(definition => {
+                        definition.bldrId = guid();
+                        automationDefinitionOutput.push(definition)
+                    })
+                }
+            } else {
+                const automationActivityDefinitions: any[] = await this.sfmc.automation.getAutomationActivities(automations)
+                automationActivityDefinitions && automationActivityDefinitions.forEach(definition => {
+                    definition.bldrId = guid();
+                    automationDefinitionOutput.push(definition)
+                })
+            }
+
+            return automationDefinitionOutput
+
+        } catch (err) {
+            console.error(err);
         }
-
-        return asset;
-    };
-
-
+    }
 }

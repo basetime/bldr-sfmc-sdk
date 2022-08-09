@@ -25,5 +25,12 @@ export interface SFMC_Client {
         putAsset: Function;
         getImageData: Function;
     };
-    automation: object;
+    automation: {
+        searchAutomations: Function;
+        getAutomationByKey: Function;
+        gatherAssetsByCategoryId: Function;
+        gatherAssetById: Function;
+        getAutomationActivity: Function;
+        getAutomationActivities: Function;
+    };
 }

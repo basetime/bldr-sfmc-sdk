@@ -1,7 +1,9 @@
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders'
+import { uniqueArrayByKey } from '.';
 
 const buildFolderPathsSoap = async (folders: SFMC_SOAP_Folder[]) => {
-    const parentFolders = ['Content Builder']
+    const parentFolders = ['Content Builder', 'my automations']
+    folders = await uniqueArrayByKey(folders, 'ID')
     const foldersOut = []; //object[]
     const compiledFolderPaths = [];
     let path = '';

@@ -145,7 +145,6 @@ const MappingByActivityTypeId = (activityTypeId: number) => {
                 folder: 'Automation Studio/User-Initiated',
             };
             break;
-        default:
     }
 
     return out;

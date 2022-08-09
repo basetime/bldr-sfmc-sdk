@@ -176,7 +176,7 @@ export class Folder {
             const rootFolderRequest = await this.search({
                 contentType: request.contentType,
                 searchKey: 'Name',
-                searchTerm: rootFolderContext.name,
+                searchTerm: rootFolderContext.rootName,
             });
 
             if (
@@ -236,8 +236,9 @@ export class Folder {
                         (parentResult &&
                             parentResult.ParentFolder &&
                             parentResult.ParentFolder.ID) ||
-                        null;
+                            null;
                 }
+
             } while (!stopFolderId || parentId === stopFolderId);
         }
         return results;

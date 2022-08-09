@@ -1,7 +1,7 @@
-import { SFMC_Content_Builder_Asset } from "../../sfmc/types/objects/sfmc_content_builder_assets";
-import { BLDR_SFMC_Content_Builder_Asset } from "../types/bldr_assets/sfmc_content_builder_asset"
+import { SFMC_Content_Builder_Asset } from "../../../../sfmc/types/objects/sfmc_content_builder_assets";
+import { BLDR_SFMC_Content_Builder_Asset } from "../../../types/bldr_assets/sfmc_content_builder_asset"
 
-import { guid } from ".";
+import { guid } from "../../index";
 
 interface BLDR_Folder {
     ID: number;
