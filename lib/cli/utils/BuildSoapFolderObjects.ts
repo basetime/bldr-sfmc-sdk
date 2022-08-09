@@ -1,9 +1,10 @@
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders'
 import { uniqueArrayByKey } from '.';
 
-const buildFolderPathsSoap = async (folders: SFMC_SOAP_Folder[]) => {
+const buildFolderPathsSoap = async (folderResponse: any[]) => {
+    const simplifiedFolders= await simplifiedFolderResponse(folderResponse)
     const parentFolders = ['Content Builder', 'my automations']
-    folders = await uniqueArrayByKey(folders, 'ID')
+    let folders = await uniqueArrayByKey(simplifiedFolders, 'ID')
     const foldersOut = []; //object[]
     const compiledFolderPaths = [];
     let path = '';
@@ -11,7 +12,7 @@ const buildFolderPathsSoap = async (folders: SFMC_SOAP_Folder[]) => {
     // Get parent folder and get folder ID
     let parentFolderObject = folders.find((folder) => !!parentFolders.includes(folder.Name))
 
-    if(!parentFolderObject){
+    if (!parentFolderObject) {
         throw new Error('Unable to find parent folder')
     }
 
@@ -74,6 +75,20 @@ const buildFolderPathsSoap = async (folders: SFMC_SOAP_Folder[]) => {
         folders: foldersOut,
         folderPaths: compiledFolderPaths
     }
+}
+
+const simplifiedFolderResponse = (folderResponse: SFMC_SOAP_Folder[]) => {
+    return folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
+        return {
+            ID: folder.ID,
+            Name: folder.Name,
+            ContentType: folder.ContentType,
+            ParentFolder: {
+                Name: folder.ParentFolder.Name,
+                ID: folder.ParentFolder.ID
+            }
+        }
+    }) || []
 }
 
 export {

@@ -11,9 +11,11 @@ const emailSendDefinition = getProperties('EmailSendDefinition');
 
 export class Automation {
     client;
+
     constructor(client: Client) {
         this.client = client;
     }
+
     /**
      * Search for Automations by SOAP API
      * @param {string} request.searchKey
@@ -352,6 +354,7 @@ export class Automation {
             return handleError(err);
         }
     }
+
 
     // TODO Test and document the various payloads
     async postAutomationAsset(asset: any) {

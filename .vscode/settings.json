@@ -5,6 +5,7 @@
       "dataextension",
       "displayname",
       "keytar",
+      "userinitiatedsend",
       "uuidv"
     ]
 }

@@ -1,4 +1,5 @@
 import { SFMC_Client } from "../types/sfmc_client";
+import {CLI_Client} from "../types/cli_client"
 import { SFMC_SOAP_Folder } from "../../sfmc/types/objects/sfmc_soap_folders"
 import { buildFolderPathsSoap } from "../utils/BuildSoapFolderObjects";
 import { formatAutomation } from "../utils/_context/automationStudio/FormatAutomationAsset";
@@ -6,11 +7,14 @@ import { SFMC_Automation } from "../types/bldr_assets/sfmc_automation";
 import { MappingByActivityTypeId } from "../../sfmc/utils/automationActivities";
 import { guid } from "../utils";
 
+
 export class AutomationStudio {
     sfmc: SFMC_Client;
+    contentBuilder: any;
 
-    constructor(sfmc: SFMC_Client) {
+    constructor(sfmc: SFMC_Client, contentBuilder: any) {
         this.sfmc = sfmc;
+        this.contentBuilder = contentBuilder
     }
     /**
      *
@@ -206,7 +210,6 @@ export class AutomationStudio {
             if (!objectId) {
                 throw new Error('objectId is required')
             }
-
             const assetResponse = await this.sfmc.automation.getAutomationByKey(objectId)
 
             if (
@@ -239,17 +242,18 @@ export class AutomationStudio {
             const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
             const formattedAssetResponse = assetResponse && buildFolderPaths && await formatAutomation(assetResponse, buildFolderPaths.folders)
             const formattedAutomationDefinitions: any = await this.gatherAutomationActivityDefinitions(formattedAssetResponse)
+            const formattedAutomationDependencies: any = formattedAutomationDefinitions && await this.gatherAutomationActivityDependencies(formattedAutomationDefinitions)
 
             return {
                 formattedAssetResponse,
-                formattedAutomationDefinitions
+                formattedAutomationDefinitions,
+                formattedAutomationDependencies
             }
 
         } catch (err: any) {
             return err.message
         }
     }
-
     /**
      *
      * @param automations
@@ -282,4 +286,33 @@ export class AutomationStudio {
             console.error(err);
         }
     }
+
+    /**
+     *
+     * @param automationDefinitions
+     */
+    gatherAutomationActivityDependencies = async (automationDefinitions: any[]) => {
+        const formattedAutomationDependencies: {
+            automationStudio?: any[];
+            contentBuilder?: any[];
+            emailStudio?: any[],
+        } = {};
+
+        for (const a in automationDefinitions) {
+            const assetType = automationDefinitions[a].assetType;
+            const assetTypeName = assetType && assetType.name;
+
+            switch (assetTypeName) {
+                case 'userinitiatedsend':
+                    formattedAutomationDependencies.contentBuilder = [];
+                    const legacyId = automationDefinitions[a].Email && automationDefinitions[a].Email.ID
+                    const emailAssetResponse = legacyId && await this.contentBuilder.gatherAssetById(legacyId, true)
+                    emailAssetResponse && emailAssetResponse.length && formattedAutomationDependencies.contentBuilder.push(...emailAssetResponse)
+                    break;
+            }
+        }
+
+        return formattedAutomationDependencies || {}
+    }
+
 }

@@ -7,6 +7,13 @@ export interface CLI_Client {
         updateContentBuilderAssetContent: Function;
     };
     automationStudio: {
+        contentBuilder: {
+            searchFolders: Function;
+            searchAssets: Function;
+            gatherAssetsByCategoryId: Function;
+            gatherAssetById: Function;
+            updateContentBuilderAssetContent: Function;
+        };
         searchFolders: Function;
         searchAssets: Function;
         // gatherAssetsByCategoryId: Function;

@@ -6,12 +6,12 @@ import { AutomationStudio } from './automationStudio'
  * @param {object} AuthObject Auth Object for making requests
  */
 export class CLI {
-    contentBuilder: object
-    automationStudio: object
+    contentBuilder: any;
+    automationStudio: any;
 
     constructor(sfmc: any) {
         this.contentBuilder = new ContentBuilder(sfmc)
-        this.automationStudio = new AutomationStudio(sfmc)
+        this.automationStudio = new AutomationStudio(sfmc, this.contentBuilder)
         // this.describe = new Describe(this.client.soap);
         // this.dataExtension = new DataExtension(this.client.soap);
         // this.query = new QueryDefinition(this.client.rest, this.client.soap);

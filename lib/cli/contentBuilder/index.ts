@@ -165,19 +165,7 @@ export class ContentBuilder {
     }) => {
         try {
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(request)
-            const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
-                return {
-                    ID: folder.ID,
-                    Name: folder.Name,
-                    ContentType: folder.ContentType,
-                    ParentFolder: {
-                        Name: folder.ParentFolder.Name,
-                        ID: folder.ParentFolder.ID
-                    }
-                }
-            }) || []
-
-            const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
+            const buildFolderPaths = await buildFolderPathsSoap(folderResponse)
             const isolateFolderIds = buildFolderPaths && buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => folder.Name !== 'Content Builder' && folder.ID).filter(Boolean)
             const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds)
 
@@ -202,13 +190,15 @@ export class ContentBuilder {
      *
      * @param assetId
      */
-    gatherAssetById = async (assetId: number) => {
+    gatherAssetById = async (assetId: number, legacy: Boolean = false) => {
         try {
             if (!assetId) {
                 throw new Error('assetId is required')
             }
 
-            const assetResponse = await this.sfmc.asset.getByAssetId(assetId)
+            // Accounts for LegacyIds and Content Builder AssetIds
+            let assetResponse = legacy && await this.sfmc.asset.getAssetByLegacyId(assetId) || await this.sfmc.asset.getByAssetId(assetId)
+            assetResponse = legacy && assetResponse && assetResponse.items && assetResponse.items.length && assetResponse.items[0] || assetResponse;
 
             if (
                 assetResponse &&
@@ -225,19 +215,7 @@ export class ContentBuilder {
                 categoryId
             })
 
-            const simplifiedFolderResponse = folderResponse && folderResponse.map((folder: SFMC_SOAP_Folder) => {
-                return {
-                    ID: folder.ID,
-                    Name: folder.Name,
-                    ContentType: folder.ContentType,
-                    ParentFolder: {
-                        Name: folder.ParentFolder.Name || 'Content Builder',
-                        ID: folder.ParentFolder.ID
-                    }
-                }
-            }) || []
-
-            const buildFolderPaths = await buildFolderPathsSoap(simplifiedFolderResponse)
+            const buildFolderPaths = await buildFolderPathsSoap(folderResponse)
             const formattedAssetResponse = assetResponse && buildFolderPaths && await formatContentBuilderAssets(assetResponse, buildFolderPaths.folders)
             return formattedAssetResponse || []
 
