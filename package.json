@@ -8,11 +8,13 @@
     },
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "tsc": "tsc",
+        "build": "tsc",
         "format:check": "prettier --check .",
         "format:write": "prettier --write .",
         "lint": "eslint ./lib",
-        "lint:fix": "eslint ./lib --fix ."
+        "lint:fix": "eslint ./lib --fix .",
+        "clean": "npx rimraf dist",
+        "updateLink": "npm run clean && npm run build && npm rm @basetime/bldr-sfmc-sdk -g && npm link"
     },
     "repository": {
         "type": "git",

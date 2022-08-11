@@ -186,10 +186,12 @@ export class AutomationStudio {
                             folder.Name !== 'my automations' && folder.ID
                     )
                     .filter(Boolean);
+
             const collectAutomationKeys =
                 await this.sfmc.automation.getAssetsByFolderArray(
                     isolateFolderIds
                 );
+
             const isolateAutomationKeys =
                 collectAutomationKeys &&
                 collectAutomationKeys.length &&
@@ -284,6 +286,7 @@ export class AutomationStudio {
                     })) ||
                 [];
 
+
             const buildFolderPaths = await buildFolderPathsSoap(
                 simplifiedFolderResponse
             );
@@ -298,6 +301,7 @@ export class AutomationStudio {
                 await this.gatherAutomationActivityDefinitions(
                     formattedAssetResponse
                 );
+
             const formattedAutomationDependencies: any =
                 formattedAutomationDefinitions &&
                 (await this.gatherAutomationActivityDependencies(

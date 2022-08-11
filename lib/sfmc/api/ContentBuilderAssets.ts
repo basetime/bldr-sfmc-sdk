@@ -242,7 +242,7 @@ export class ContentBuilderAsset {
                 request
             );
         } catch (err) {
-            return handleError(err);
+            return err;
         }
     }
 
@@ -277,7 +277,8 @@ export class ContentBuilderAsset {
 
             return apiRequest;
         } catch (err) {
-            return handleError(err);
+            console.log('in fn', err)
+            return err;
         }
     }
 }

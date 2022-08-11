@@ -1,7 +1,6 @@
 //TODO Separate out SFMC functions into its own package
 //TODO Explore possibility of sfmc-sdk to allow oAuth token
 const SDK = require('sfmc-sdk');
-const client = require('../sfmc/api/Client');
 
 // Class Imports
 import { Account } from '../sfmc/api/Account';
@@ -20,11 +19,40 @@ import { AuthObject } from './types/sfmc_auth_object';
  */
 export class SFMC {
     client: any;
-    folder: object;
-    asset: object;
-    account: object;
-    automation: object;
-
+    folder: {
+        search: Function;
+        getFolder: Function;
+        getSubfolders: Function;
+        getParentFoldersRecursive: Function;
+        getSubfoldersRecursive: Function;
+        getFoldersFromMiddle: Function;
+        createFolder: Function;
+        _updateAllowChildren: Function;
+    };
+    account: {
+        getInstanceDetails: Function;
+        getBusinessUnitDetails: Function;
+        getAllBusinessUnitDetails: Function;
+    };
+    asset: {
+        getByAssetId: Function;
+        getAssetByLegacyId: Function;
+        getAssetsByFolderArray: Function;
+        getAssetByNameAndFolder: Function;
+        searchAssets: Function;
+        postAsset: Function;
+        putAsset: Function;
+        getImageData: Function;
+    };
+    automation: {
+        searchAutomations: Function;
+        getAutomationByKey: Function;
+        getAutomationsByKey: Function;
+        getAssetsByFolderArray: Function;
+        getAutomationActivity: Function;
+        getAutomationActivities: Function;
+        patchAutomationAsset: Function;
+    };
     constructor(AuthObject: AuthObject) {
         this.client = new SDK(
             {

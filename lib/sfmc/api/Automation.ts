@@ -3,15 +3,14 @@ import { handleError } from '../utils/handleError';
 import { automationStudioActivityTypes } from '../utils/automationActivityTypes';
 import {
     MappingByActivityTypeId,
-    MappingByActivityType,
 } from '../utils/automationActivities';
+
 const { getProperties } = require('sfmc-soap-object-reference');
 const automationDefinition = getProperties('Automation');
 const emailSendDefinition = getProperties('EmailSendDefinition');
 
 export class Automation {
     client;
-
     constructor(client: Client) {
         this.client = client;
     }
@@ -178,7 +177,7 @@ export class Automation {
             }[];
         }[];
     }) {
-        const activities = new Array();
+        const activities = [];
 
         if (Object.prototype.hasOwnProperty.call(automation, 'steps')) {
             for (const as in automation.steps) {
@@ -227,6 +226,10 @@ export class Automation {
                         }
 
                         stepActivity.assetType = assetType;
+                        stepActivity.category = {
+                            folderPath: assetType.folder
+                        }
+
                         activities.push(stepActivity);
                     }
                 }
@@ -353,7 +356,11 @@ export class Automation {
         }
     }
 
-    // TODO Test and document the various payloads
+    /**
+     *
+     * @param asset
+     * @returns
+     */
     async postAutomationAsset(asset: any) {
         try {
             const assetType = asset.assetType;
@@ -367,18 +374,27 @@ export class Automation {
             return handleError(err);
         }
     }
-    // TODO Test and document the various payloads
-    async patchAutomationAsset(asset: any) {
+    /**
+     *
+     * @param asset
+     * @returns
+     */
+    async patchAutomationAsset(asset: {
+        [key: string]: any
+    }) {
         try {
             const assetType = asset.assetType;
+            const objectKey: string = assetType.objectIdKey;
+            const assetObjectId: string = asset && asset[objectKey]
+
             const resp = await this.client.rest.put(
-                `/automation/v1/${assetType}`,
+                `/automation/v1/${assetType}/${assetObjectId}`,
                 asset
             );
 
             return resp;
-        } catch (err: any) {
-            return handleError(err);
+        } catch (err) {
+            return err;
         }
     }
 }

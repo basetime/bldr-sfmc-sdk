@@ -1,6 +1,5 @@
 import { Client } from '../types/sfmc_client';
 import { handleError } from '../utils/handleError';
-
 const { getProperties } = require('sfmc-soap-object-reference');
 const ListDefinition = getProperties('List');
 const AccountDefinition = getProperties('Account');

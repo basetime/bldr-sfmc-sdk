@@ -30,8 +30,8 @@ export interface SFMC_Client {
         getAutomationByKey: Function;
         getAutomationsByKey: Function;
         getAssetsByFolderArray: Function;
-        gatherAssetById: Function;
         getAutomationActivity: Function;
         getAutomationActivities: Function;
+        patchAutomationAsset: Function;
     };
 }

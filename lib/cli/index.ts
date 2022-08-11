@@ -6,8 +6,19 @@ import { AutomationStudio } from './automationStudio';
  * @param {object} AuthObject Auth Object for making requests
  */
 export class CLI {
-    contentBuilder: any;
-    automationStudio: any;
+    contentBuilder: {
+        searchFolders: Function;
+        searchAssets: Function;
+        gatherAssetsByCategoryId: Function;
+        gatherAssetById: Function;
+        updateContentBuilderAssetContent: Function;
+    };
+    automationStudio: {
+        searchFolders: Function;
+        searchAssets: Function;
+        gatherAssetsByCategoryId: Function;
+        gatherAssetById: Function;
+    };
 
     constructor(sfmc: any) {
         this.contentBuilder = new ContentBuilder(sfmc);
