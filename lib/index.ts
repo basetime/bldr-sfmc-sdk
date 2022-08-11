@@ -14,12 +14,6 @@ class BLDR {
     constructor(authObject: AuthObject) {
         this.sfmc = new SFMC(authObject);
         this.cli = new CLI(this.sfmc);
-        // this.asset = new Asset(this.client.rest);
-        // this.account = new Account(this.client.soap);
-        // this.describe = new Describe(this.client.soap);
-        // this.dataExtension = new DataExtension(this.client.soap);
-        // this.query = new QueryDefinition(this.client.rest, this.client.soap);
-        // this.automation = new Automation(this.client.rest, this.client.soap);
     }
 }
 

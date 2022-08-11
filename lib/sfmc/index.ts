@@ -11,13 +11,14 @@ import { sfmc_context_mapping } from './utils/sfmcContextMapping';
 
 // Type Definition Imports
 import { AuthObject } from './types/sfmc_auth_object';
+import { SFMC_Client } from '../cli/types/sfmc_client';
 
 /**
  * Creates an instance of BLDR SDK.
  *
  * @param {object} AuthObject Auth Object for making requests
  */
-export class SFMC {
+export class SFMC implements SFMC_Client {
     client: any;
     folder: {
         search: Function;

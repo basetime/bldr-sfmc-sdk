@@ -14,7 +14,6 @@ export class Automation {
     constructor(client: Client) {
         this.client = client;
     }
-
     /**
      * Search for Automations by SOAP API
      * @param {string} request.searchKey
@@ -237,7 +236,6 @@ export class Automation {
         }
         return activities;
     }
-
     /**
      * Retrieve Email Send Definition
      *
@@ -355,7 +353,6 @@ export class Automation {
             return handleError(err);
         }
     }
-
     /**
      *
      * @param asset
@@ -388,7 +385,7 @@ export class Automation {
             const assetObjectId: string = asset && asset[objectKey]
 
             const resp = await this.client.rest.put(
-                `/automation/v1/${assetType}/${assetObjectId}`,
+                `/automation/v1/${assetType.api}/${assetObjectId}`,
                 asset
             );
 

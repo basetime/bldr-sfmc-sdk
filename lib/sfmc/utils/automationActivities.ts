@@ -8,7 +8,7 @@ const MappingByActivityType = (activityType: string) => {
     let out;
 
     switch (activityType) {
-        case 'queries':
+        case 'queryactivity':
             out = {
                 objectTypeId: 300,
                 api: 'queries',
@@ -17,7 +17,7 @@ const MappingByActivityType = (activityType: string) => {
                 folder: 'Automation Studio/Query',
             };
             break;
-        case 'scripts':
+        case 'ssjsactivity':
             out = {
                 objectTypeId: 423,
                 api: 'scripts',
@@ -26,7 +26,7 @@ const MappingByActivityType = (activityType: string) => {
                 folder: 'Automation Studio/Scripts',
             };
             break;
-        case 'imports':
+        case 'importactivity':
             out = {
                 objectTypeId: 43,
                 api: 'imports',
@@ -35,7 +35,7 @@ const MappingByActivityType = (activityType: string) => {
                 folder: 'Automation Studio/File Imports',
             };
             break;
-        case 'filetransfers':
+        case 'transferactivity':
             out = {
                 objectTypeId: 53,
                 api: 'filetransfers',
@@ -44,7 +44,7 @@ const MappingByActivityType = (activityType: string) => {
                 folder: 'Automation Studio/File Transfers',
             };
             break;
-        case 'filters':
+        case 'filteractivity':
             out = {
                 objectTypeId: 303,
                 api: 'filters',
@@ -54,7 +54,7 @@ const MappingByActivityType = (activityType: string) => {
             };
             break;
 
-        case 'dataextracts':
+        case 'dataextractactivity':
             out = {
                 objectTypeId: 73,
                 api: 'dataextracts',
@@ -63,7 +63,7 @@ const MappingByActivityType = (activityType: string) => {
                 folder: 'Automation Studio/Extracts',
             };
             break;
-        case 'EmailSendDefinition':
+        case 'userinitiatedsend':
             out = {
                 objectTypeId: 42,
                 api: 'EmailSendDefinition',

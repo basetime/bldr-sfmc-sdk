@@ -198,7 +198,7 @@ export class ContentBuilderAsset {
         try {
             return this.client.rest.post(`/asset/v1/content/assets/`, request);
         } catch (err) {
-            return handleError(err);
+            return err;
         }
     }
 
