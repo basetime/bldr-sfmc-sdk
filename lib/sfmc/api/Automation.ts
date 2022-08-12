@@ -384,7 +384,7 @@ export class Automation {
             const objectKey: string = assetType.objectIdKey;
             const assetObjectId: string = asset && asset[objectKey]
 
-            const resp = await this.client.rest.put(
+            const resp = await this.client.rest.patch(
                 `/automation/v1/${assetType.api}/${assetObjectId}`,
                 asset
             );
