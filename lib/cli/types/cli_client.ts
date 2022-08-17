@@ -5,6 +5,8 @@ export interface CLI_Client {
         gatherAssetsByCategoryId: Function;
         gatherAssetById: Function;
         updateContentBuilderAssetContent: Function;
+        setContentBuilderPackageAssets: Function;
+        setContentBuilderDependenciesFromPackage: Function;
     };
     automationStudio: {
         searchFolders: Function;

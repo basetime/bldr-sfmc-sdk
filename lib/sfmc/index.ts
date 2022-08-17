@@ -12,6 +12,7 @@ import { sfmc_context_mapping } from './utils/sfmcContextMapping';
 // Type Definition Imports
 import { AuthObject } from './types/sfmc_auth_object';
 import { SFMC_Client } from '../cli/types/sfmc_client';
+import { EmailStudio } from './api/EmailStudio';
 
 /**
  * Creates an instance of BLDR SDK.
@@ -54,6 +55,14 @@ export class SFMC implements SFMC_Client {
         getAutomationActivities: Function;
         patchAutomationAsset: Function;
     };
+    emailStudio: {
+        searchEmailSendDefinition: Function;
+        getEmailSendDefinitionActivity: Function;
+        searchDataExtensionByName: Function;
+        retrieveDataExtensionPayloadByName: Function;
+        getDataExtensionFields: Function;
+        postAsset: Function;
+    }
     constructor(AuthObject: AuthObject) {
         this.client = new SDK(
             {
@@ -88,6 +97,7 @@ export class SFMC implements SFMC_Client {
         this.asset = new ContentBuilderAsset(this.client);
         this.account = new Account(this.client);
         this.automation = new Automation(this.client);
+        this.emailStudio = new EmailStudio(this.client, this.folder)
         // this.describe = new Describe(this.client.soap);
         // this.dataExtension = new DataExtension(this.client.soap);
         // this.query = new QueryDefinition(this.client.rest, this.client.soap);

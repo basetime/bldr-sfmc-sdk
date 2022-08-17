@@ -1,17 +1,24 @@
 import { Client } from '../types/sfmc_client';
 import { handleError } from '../utils/handleError';
+import { buildFolderPathsSoap } from '../../cli/utils/BuildSoapFolderObjects';
 import { automationStudioActivityTypes } from '../utils/automationActivityTypes';
 import {
     MappingByActivityTypeId,
     MappingByActivityType,
 } from '../utils/automationActivities';
+import { capitalizeKeys } from '../utils/modifyObject';
 const { getProperties } = require('sfmc-soap-object-reference');
 const emailSendDefinition = getProperties('EmailSendDefinition');
+const dataExtensionDefinition = getProperties('DataExtension');
+const dataExtensionDefinitionField = getProperties('DataExtensionField');
+
 
 export class EmailStudio {
     client;
-    constructor(client: Client) {
+    folder;
+    constructor(client: Client, folder: any) {
         this.client = client;
+        this.folder = folder
     }
     /**
      * Search for Automations by SOAP API
@@ -19,10 +26,10 @@ export class EmailStudio {
      * @param {string} request.searchTerm
      * @returns
      */
-    async searchEmailSendDefinition(request: {
+    searchEmailSendDefinition = async (request: {
         searchKey: string;
         searchTerm: string;
-    }) {
+    }) => {
         try {
             return this.client.soap.retrieveBulk(
                 'Program',
@@ -45,7 +52,7 @@ export class EmailStudio {
      * @param {string} activityObjectId
      * @returns
      */
-    async getEmailSendDefinitionActivity(ObjectID: string): Promise<{
+    getEmailSendDefinitionActivity = async (ObjectID: string): Promise<{
         ObjectID: string;
         CustomerKey: string;
         Name: string;
@@ -85,7 +92,7 @@ export class EmailStudio {
         ExclusionFilter: string;
         Additional: string;
         CCEmail: string;
-    }> {
+    }> => {
         try {
             const sendDefinitionResponse = await this.client.soap.retrieve(
                 'EmailSendDefinition',
@@ -156,4 +163,398 @@ export class EmailStudio {
             return handleError(err);
         }
     }
+
+    /**
+     *
+     * @param dataExtensionName
+     * @returns
+     */
+    searchDataExtensionByName = async (request: {
+        searchKey: string,
+        searchTerm: string
+    }) => {
+        return this.client.soap.retrieve(
+            'DataExtension',
+            dataExtensionDefinition,
+            {
+                filter: {
+                    leftOperand: request.searchKey,
+                    operator: 'like',
+                    rightOperand: request.searchTerm,
+                },
+            }
+        );
+    }
+
+    /**
+     *
+     * @param dataExtensionName
+     * @returns
+     */
+    retrieveDataExtensionPayloadByName = async(dataExtensionName: string) =>{
+        interface Field {
+            scale?: number;
+            partnerKey: string;
+            name: string;
+            defaultValue: string;
+            maxLength: number;
+            isRequired: Boolean;
+            ordinal: number;
+            isPrimaryKey: Boolean;
+            fieldType: string;
+        }
+
+        let sendableName;
+        let RelatesOnSub;
+        let retentionPeriodLength;
+        let retentionPeriod;
+        let deleteRetentionPeriod;
+        let rowRetention;
+        let resetRetention;
+        let retentionPeriodUnit;
+        let sendableFieldType;
+
+        const dataExtension = await this.client.soap.retrieve(
+            'DataExtension',
+            dataExtensionDefinition,
+            {
+                filter: {
+                    leftOperand: 'Name',
+                    operator: 'equals',
+                    rightOperand: dataExtensionName,
+                },
+            }
+        );
+
+        if (
+            Object.prototype.hasOwnProperty.call(dataExtension, 'Results') &&
+            Object.prototype.hasOwnProperty.call(
+                dataExtension.Results[0],
+                'CustomerKey'
+            )
+        ) {
+            const folderPathResponse = await this.folder.getParentFoldersRecursive({
+                contentType: 'dataextension',
+                categoryId: dataExtension.Results[0].CategoryID
+            })
+            const compiledFolderPaths = await buildFolderPathsSoap(folderPathResponse)
+            const dataExtensionFolderObject = compiledFolderPaths.folders.find((folder) => folder.ID === dataExtension.Results[0].CategoryID)
+            const { FolderPath } = dataExtensionFolderObject
+
+            const dataExtensionFields = await this.getDataExtensionFields(
+                dataExtension.Results[0].CustomerKey
+            );
+
+            let sendable = dataExtension.Results[0].IsSendable;
+            let retention = dataExtension.Results[0].DataRetentionPeriodLength;
+
+            if (retention && retention > 0) {
+                retention = true;
+            }
+
+            if (sendable) {
+                sendableName =
+                    dataExtension.Results[0].SendableDataExtensionField.Name;
+                RelatesOnSub =
+                    dataExtension.Results[0].SendableSubscriberField.Name;
+            }
+
+
+            if (retention) {
+                retentionPeriodLength =
+                    dataExtension.Results[0].DataRetentionPeriodLength;
+                retentionPeriod =
+                    dataExtension.Results[0].DataRetentionPeriod;
+                deleteRetentionPeriod =
+                    dataExtension.Results[0].DeleteAtEndOfRetentionPeriod;
+                rowRetention = dataExtension.Results[0].RowBasedRetention;
+                resetRetention =
+                    dataExtension.Results[0].ResetRetentionPeriodOnImport;
+                retentionPeriodUnit =
+                    dataExtension.Results[0].DataRetentionPeriodUnitOfMeasure;
+            }
+
+            let fieldLength = dataExtensionFields.Results.length;
+            let dataExtensionFieldArr = dataExtensionFields.Results;
+
+            let fieldArray = [];
+
+            // Organize and format DE Field Schema
+            for (let a = 0; a < fieldLength; a++) {
+                let fieldObj = dataExtensionFieldArr[a];
+
+                //Fields that need to be removed prior to creation of new DE
+                delete fieldObj.AttributeMaps;
+                delete fieldObj.CustomerKey;
+                delete fieldObj.ObjectID;
+
+                if (fieldObj.MaxLength == '' || fieldObj.MaxLength == 0) {
+                    delete fieldObj.MaxLength;
+                }
+
+                delete fieldObj.StorageType;
+                delete fieldObj.DataExtension;
+                delete fieldObj.DataType;
+                delete fieldObj.IsCreatable;
+                delete fieldObj.IsUpdatable;
+                delete fieldObj.IsRetrievable;
+                delete fieldObj.IsQueryable;
+                delete fieldObj.IsFilterable;
+                delete fieldObj.IsPartnerProperty;
+                delete fieldObj.IsAccountProperty;
+                delete fieldObj.PartnerMap;
+                delete fieldObj.Markups;
+                delete fieldObj.Precision;
+
+                if (fieldObj.FieldType !== 'Decimal') {
+                    delete fieldObj.Scale;
+                }
+
+                delete fieldObj.Label;
+                if (fieldObj.MinLength == '' || fieldObj.MinLength == 0) {
+                    delete fieldObj.MinLength;
+                }
+                delete fieldObj.CreatedDate;
+                delete fieldObj.ModifiedDate;
+                delete fieldObj.ID;
+                delete fieldObj.IsRestrictedPicklist;
+                delete fieldObj.PicklistItems;
+                delete fieldObj.IsSendTime;
+                delete fieldObj.DisplayOrder;
+                delete fieldObj.References;
+                delete fieldObj.RelationshipName;
+                delete fieldObj.Status;
+                delete fieldObj.IsContextSpecific;
+                delete fieldObj.Client;
+                delete fieldObj.PartnerProperties;
+
+                const field: Field = {
+                    partnerKey: fieldObj.PartnerKey,
+                    name: fieldObj.Name,
+                    defaultValue: fieldObj.DefaultValue,
+                    maxLength: fieldObj.MaxLength,
+                    isRequired: fieldObj.IsRequired,
+                    ordinal: fieldObj.Ordinal,
+                    isPrimaryKey: fieldObj.IsPrimaryKey,
+                    fieldType: fieldObj.FieldType,
+                };
+
+                if (fieldObj.FieldType === 'Decimal') {
+                    field.scale = fieldObj.Scale;
+                }
+
+                fieldArray.push(field);
+
+                //set sendable field type
+                if (sendableName == fieldObj.Name) {
+                    sendableFieldType = fieldObj.FieldType;
+                }
+
+                //Reset fieldObj
+                fieldObj = '';
+            }
+
+            //Get DE Payload
+            let de: {
+                name: string;
+                customerKey: string;
+                description: string;
+                fields: Field[];
+                category: {
+                    folderPath: string;
+                };
+                isSendable?: Boolean
+                sendableDataExtensionField?: {
+                    name: string;
+                    fieldType: string;
+                };
+                sendableSubscriberField?: {
+                    name: string
+                }
+                dataRetentionPeriodLength?: number;
+                dataRetentionPeriod?: string;
+                deleteAtEndOfRetentionPeriod?: Boolean;
+                rowBasedRetention?: Boolean;
+                resetRetentionPeriodOnImport?: Boolean;
+                dataRetentionPeriodUnitOfMeasure?: number;
+            } = {
+                name: dataExtensionName,
+                customerKey: dataExtensionName,
+                description: dataExtension.Results[0].Description,
+                fields: fieldArray,
+                category: {
+                    folderPath: FolderPath,
+                },
+            };
+
+            if (sendable) {
+                if ((RelatesOnSub = '_SubscriberKey')) {
+                    RelatesOnSub = 'Subscriber Key';
+                }
+
+                de.isSendable = true;
+                de.sendableDataExtensionField = {
+                    name: sendableName,
+                    fieldType: sendableFieldType,
+                };
+                de.sendableSubscriberField = { name: RelatesOnSub };
+            }
+
+            if (retention) {
+                de.dataRetentionPeriodLength = retentionPeriodLength;
+                de.dataRetentionPeriod = retentionPeriod;
+                de.deleteAtEndOfRetentionPeriod = deleteRetentionPeriod;
+                de.rowBasedRetention = rowRetention;
+                de.resetRetentionPeriodOnImport = resetRetention;
+                de.dataRetentionPeriodUnitOfMeasure = retentionPeriodUnit;
+            }
+
+            return de
+        }
+    }
+    /**
+     *
+     * @param customerKey
+     * @returns
+     */
+    getDataExtensionFields = async (customerKey: string) => {
+        try {
+
+            const resp = await this.client.soap.retrieve(
+                'DataExtensionField',
+                dataExtensionDefinitionField,
+                {
+                    filter: {
+                        leftOperand: 'DataExtension.CustomerKey',
+                        operator: 'equals',
+                        rightOperand: customerKey,
+                    },
+                }
+            );
+
+            if (resp.OverallStatus !== 'OK') {
+                throw new Error('Unable to Retrieve Folders');
+            }
+            return resp;
+        } catch (err: any) {
+            return err;
+        }
+    }
+
+
+
+
+    postAsset = async (dataExtension: {
+        name: string;
+        customerKey: string;
+        description: string;
+        fields: {
+            name: string;
+            defaultValue: any;
+            maxLength?: number;
+            isPrimaryKey: Boolean;
+            isRequired: Boolean;
+            fieldType: string;
+            ordinal: number;
+            scale?: number;
+        }[];
+        categoryId: number;
+        isSendable?: Boolean;
+        sendableDataExtensionField?: {
+            name: string;
+            fieldType: string;
+        };
+        sendableSubscriberField?: {
+            name: string
+        };
+        dataRetentionPeriodLength?: number;
+        dataRetentionPeriod?: string;
+        rowBasedRetention?: Boolean;
+        resetRetentionPeriodOnImport?: Boolean;
+        retainUntil?: string;
+    }) => {
+        try {
+            const fieldsArr = await this.mapFieldObj(dataExtension.fields);
+            let dataExtensionCreate: {
+                Name: string;
+                CustomerKey: string;
+                Description: string;
+                CategoryID: number;
+                Fields: any[];
+                IsSendable?: Boolean
+                SendableDataExtensionField?: {
+                    Name: string;
+                    FieldType: string
+                }
+                SendableSubscriberField?: {
+                    Name: string;
+                }
+                DataRetentionPeriodLength?: number;
+                DataRetentionPeriod?: string;
+                RowBasedRetention?: Boolean;
+                ResetRetentionPeriodOnImport?: Boolean;
+                RetainUntil?: string;
+            } = {
+                "Name": dataExtension.name,
+                "CustomerKey": dataExtension.customerKey,
+                "Description": dataExtension.description,
+                "CategoryID": dataExtension.categoryId,
+                "Fields": fieldsArr,
+            }
+
+            if (dataExtension.isSendable) {
+                dataExtensionCreate.IsSendable = dataExtension.isSendable;
+            }
+            if (dataExtension.sendableDataExtensionField) {
+                dataExtensionCreate.SendableDataExtensionField = {
+                    Name: dataExtension.sendableDataExtensionField.name,
+                    FieldType: dataExtension.sendableDataExtensionField.fieldType
+                };
+            }
+            if (dataExtension.sendableSubscriberField) {
+                dataExtensionCreate.SendableSubscriberField = {
+                    Name: dataExtension.sendableSubscriberField.name
+                };
+            }
+            if (dataExtension.dataRetentionPeriodLength) {
+                dataExtensionCreate.DataRetentionPeriodLength = dataExtension.dataRetentionPeriodLength;
+            }
+            if (dataExtension.dataRetentionPeriod) {
+                dataExtensionCreate.DataRetentionPeriod = dataExtension.dataRetentionPeriod;
+            }
+            if (dataExtension.rowBasedRetention) {
+                dataExtensionCreate.RowBasedRetention = dataExtension.rowBasedRetention;
+            }
+            if (dataExtension.resetRetentionPeriodOnImport) {
+                dataExtensionCreate.ResetRetentionPeriodOnImport = dataExtension.resetRetentionPeriodOnImport;
+            }
+            if (dataExtension.retainUntil) {
+                dataExtensionCreate.RetainUntil = dataExtension.retainUntil;
+            }
+
+            return this.client.soap.create('DataExtension', dataExtensionCreate, {})
+
+        } catch (err) {
+            console.log(err)
+            return err
+        }
+    }
+
+    mapFieldObj = (fields: {
+        name: string;
+        defaultValue: any;
+        maxLength?: number;
+        isPrimaryKey: Boolean;
+        isRequired: Boolean;
+        fieldType: string;
+        ordinal: number;
+        scale?: number;
+    }[]) => {
+        const fieldsObj = fields.map((field) => {
+            return capitalizeKeys(field)
+        })
+
+        return fieldsObj
+    }
+
 }

@@ -6,7 +6,7 @@ import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference'
 import { getAssetDependency, setUpdatedPackageAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies'
 
-export class ContentBuilder {
+export class EmailStudio {
     sfmc: SFMC_Client;
 
     constructor(sfmc: SFMC_Client) {
@@ -40,12 +40,11 @@ export class ContentBuilder {
      *  }]
      * ```
      */
-    searchFolders = async (request: {
-        contentType: string;
+     searchDataExtensions = async (request: {
         searchKey: string;
         searchTerm: string;
     }) => {
-        const response = await this.sfmc.folder.search(request);
+        const response = await this.sfmc.emailStudio.searchDataExtensionByName(request);
         if (response.OverallStatus !== 'OK') {
             return response.OverallStatus;
         }
@@ -53,10 +52,11 @@ export class ContentBuilder {
         const formattedResponse =
             (response &&
                 response.Results.map(
-                    (folder: {
+                    (dataExtension: {
                         Name: string;
                         CreatedDate: string;
                         ModifiedDate: string;
+                        CustomerKey: string;
                         ID: number;
                         ParentFolder: {
                             Name: string;
@@ -64,78 +64,14 @@ export class ContentBuilder {
                         };
                     }) => {
                         return {
-                            ID: folder.ID,
-                            Name: folder.Name,
-                            CreatedDate: folder.CreatedDate,
-                            ModifiedDate: folder.ModifiedDate,
+                            ID: dataExtension.ID,
+                            CustomerKey: dataExtension.CustomerKey,
+                            Name: dataExtension.Name,
+                            CreatedDate: dataExtension.CreatedDate,
+                            ModifiedDate: dataExtension.ModifiedDate,
                             ParentFolder: {
-                                Name: folder.ParentFolder.Name,
-                                ID: folder.ParentFolder.ID,
-                            },
-                        };
-                    }
-                )) ||
-            [];
-
-        return formattedResponse;
-    };
-    /**
-     *
-     * @param request.searchKey
-     * @param request.searchTerm
-     *
-     * ```
-     *  {
-     *      searchKey: '',
-     *      searchTerm: ''
-     *  }
-     * ```
-     *
-     * Output
-     * ```
-     * [{
-     *      ID: number,
-     *      Name: string,
-     *      AssetType: string,
-     *      CreatedDate: string,
-     *      ModifiedDate: string,
-     *      Category: {
-     *          Name: string,
-     *          ParentId: number
-     *      }
-     *  }]
-     * ```
-     */
-    searchAssets = async (request: {
-        searchKey: string;
-        searchTerm: string;
-    }) => {
-        const response = await this.sfmc.asset.searchAssets(request);
-        const formattedResponse =
-            (response &&
-                response.items.map(
-                    (asset: {
-                        id: number;
-                        name: string;
-                        assetType: {
-                            name: string;
-                        };
-                        createdDate: string;
-                        modifiedDate: string;
-                        category: {
-                            name: string;
-                            parentId: string;
-                        };
-                    }) => {
-                        return {
-                            ID: asset.id,
-                            Name: asset.name,
-                            AssetType: asset.assetType.name,
-                            CreatedDate: asset.createdDate,
-                            ModifiedDate: asset.modifiedDate,
-                            Category: {
-                                Name: asset.category.name,
-                                ParentId: asset.category.parentId,
+                                Name: dataExtension.ParentFolder.Name,
+                                ID: dataExtension.ParentFolder.ID,
                             },
                         };
                     }

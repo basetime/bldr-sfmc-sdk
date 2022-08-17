@@ -3,7 +3,7 @@ import { uniqueArrayByKey } from '.';
 
 const buildFolderPathsSoap = async (folderResponse: any[]) => {
     const simplifiedFolders = await simplifiedFolderResponse(folderResponse);
-    const parentFolders = ['Content Builder', 'my automations'];
+    const parentFolders = ['Content Builder', 'my automations', 'Data Extensions'];
     let folders = await uniqueArrayByKey(simplifiedFolders, 'ID');
     const foldersOut = []; //object[]
     const compiledFolderPaths = [];

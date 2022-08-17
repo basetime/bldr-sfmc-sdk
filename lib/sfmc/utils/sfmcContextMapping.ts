@@ -2,7 +2,7 @@ import { SFMCContextMapping } from '../types/sfmc_context_mapping';
 
 const sfmc_context_mapping: SFMCContextMapping[] = [
     {
-        name: 'Data Extensions',
+        name: 'Data Extension',
         rootName: 'Data Extensions',
         context: 'dataExtension',
         contentType: 'dataextension',
@@ -19,6 +19,7 @@ const sfmc_context_mapping: SFMCContextMapping[] = [
         context: 'automationStudio',
         contentType: 'automations',
     },
+
 ];
 
 export { sfmc_context_mapping };
