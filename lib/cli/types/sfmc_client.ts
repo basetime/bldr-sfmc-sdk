@@ -37,6 +37,7 @@ export interface SFMC_Client {
     emailStudio: {
         searchEmailSendDefinition: Function;
         getEmailSendDefinitionActivity: Function;
+        getAssetsByFolderArray: Function;
         retrieveDataExtensionPayloadByName: Function;
         searchDataExtensionByName: Function;
         postAsset: Function;

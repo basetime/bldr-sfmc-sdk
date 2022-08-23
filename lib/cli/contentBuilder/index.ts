@@ -179,6 +179,8 @@ export class ContentBuilder {
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
+
+
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
             const isolateFolderIds =
                 buildFolderPaths &&
@@ -188,9 +190,11 @@ export class ContentBuilder {
                             folder.Name !== 'Content Builder' && folder.ID
                     )
                     .filter(Boolean);
+
             const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(
                 isolateFolderIds
             );
+
 
             if (
                 assetResponse &&
@@ -198,7 +202,11 @@ export class ContentBuilder {
                 assetResponse.response.status &&
                 !assetResponse.response.status.test(/^2/)
             ) {
-                throw new Error(assetResponse.response.statusText);
+                throw new Error(assetResponse);
+            }
+
+            if (assetResponse.items.length === 0) {
+                throw new Error('No items returned')
             }
 
             const formattedAssetResponse =
@@ -209,9 +217,23 @@ export class ContentBuilder {
                     assetResponse.items,
                     buildFolderPaths.folders
                 ));
-            return formattedAssetResponse || [];
+
+            const formattedFolders = buildFolderPaths.folders.map((folder) => {
+                return {
+                    id: folder.ID,
+                    name: folder.Name,
+                    parentId: folder.ParentFolder.ID,
+                    folderPath: folder.FolderPath
+                  }
+            })
+
+            return {
+                folders: formattedFolders,
+                assets: formattedAssetResponse || []
+            }
+
         } catch (err: any) {
-            return err.message;
+            return err
         }
     };
     /**
@@ -264,7 +286,20 @@ export class ContentBuilder {
                     assetResponse,
                     buildFolderPaths.folders
                 ));
-            return formattedAssetResponse || [];
+
+                const formattedFolders = buildFolderPaths.folders.map((folder) => {
+                    return {
+                        id: folder.ID,
+                        name: folder.Name,
+                        parentId: folder.ParentFolder.ID,
+                        folderPath: folder.FolderPath
+                      }
+                })
+
+                return {
+                    folders: formattedFolders,
+                    assets: formattedAssetResponse || []
+                }
         } catch (err: any) {
             return err.message;
         }

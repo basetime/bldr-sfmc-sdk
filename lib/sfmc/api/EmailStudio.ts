@@ -186,6 +186,29 @@ export class EmailStudio {
         );
     }
 
+    getAssetsByFolderArray = async (folderIdArray: number[]) => {
+        const dataExtensionResponse = await this.client.soap.retrieve(
+            'DataExtension',
+            dataExtensionDefinition,
+            {
+                filter: {
+                    leftOperand: 'CategoryID',
+                    operator: 'IN',
+                    rightOperand: folderIdArray,
+                },
+            }
+        );
+
+        if (
+            dataExtensionResponse.OverallStatus !== 'OK' ||
+            dataExtensionResponse.Results.length === 0
+        ) {
+            throw new Error(dataExtensionResponse.OverallStatus);
+        }
+
+        return dataExtensionResponse
+    }
+
     /**
      *
      * @param dataExtensionName

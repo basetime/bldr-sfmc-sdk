@@ -40,7 +40,75 @@ export class EmailStudio {
      *  }]
      * ```
      */
-     searchDataExtensions = async (request: {
+    searchFolders = async (request: {
+        contentType: string;
+        searchKey: string;
+        searchTerm: string;
+    }) => {
+        const response = await this.sfmc.folder.search(request);
+        if (response.OverallStatus !== 'OK') {
+            return response.OverallStatus;
+        }
+
+        const formattedResponse =
+            (response &&
+                response.Results.map(
+                    (folder: {
+                        Name: string;
+                        CreatedDate: string;
+                        ModifiedDate: string;
+                        ID: number;
+                        ParentFolder: {
+                            Name: string;
+                            ID: string;
+                        };
+                    }) => {
+                        return {
+                            ID: folder.ID,
+                            Name: folder.Name,
+                            CreatedDate: folder.CreatedDate,
+                            ModifiedDate: folder.ModifiedDate,
+                            ParentFolder: {
+                                Name: folder.ParentFolder.Name,
+                                ID: folder.ParentFolder.ID,
+                            },
+                        };
+                    }
+                )) ||
+            [];
+
+        return formattedResponse;
+    };
+
+    /**
+     *
+     * @param request.contentType
+     * @param request.searchKey
+     * @param request.searchTerm
+     *
+     * ```
+     *  {
+     *      contentType: '',
+     *      searchKey: '',
+     *      searchTerm: ''
+     *  }
+     * ```
+     *
+     * Output
+     * ```
+     * [{
+     *      Name: string;
+     *      ID: number;
+     *      CreatedDate: string;
+     *      ModifiedDate: string;
+     *      ParentFolder: {
+     *          Name: string;
+     *          ID: string;
+     *      }
+     *  }]
+     * ```
+     */
+    searchDataExtensions = async (request: {
         searchKey: string;
         searchTerm: string;
     }) => {
@@ -57,22 +125,14 @@ export class EmailStudio {
                         CreatedDate: string;
                         ModifiedDate: string;
                         CustomerKey: string;
-                        ID: number;
-                        ParentFolder: {
-                            Name: string;
-                            ID: string;
-                        };
+                        CategoryID: number;
                     }) => {
                         return {
-                            ID: dataExtension.ID,
                             CustomerKey: dataExtension.CustomerKey,
                             Name: dataExtension.Name,
                             CreatedDate: dataExtension.CreatedDate,
                             ModifiedDate: dataExtension.ModifiedDate,
-                            ParentFolder: {
-                                Name: dataExtension.ParentFolder.Name,
-                                ID: dataExtension.ParentFolder.ID,
-                            },
+                            CategoryID: dataExtension.CategoryID
                         };
                     }
                 )) ||
@@ -121,31 +181,36 @@ export class EmailStudio {
                 buildFolderPaths.folders
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
-                            folder.Name !== 'Content Builder' && folder.ID
+                            folder.Name !== 'Data Extensions' && folder.ID
                     )
                     .filter(Boolean);
-            const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(
+
+            const assetResponse = await this.sfmc.emailStudio.getAssetsByFolderArray(
                 isolateFolderIds
             );
 
-            if (
-                assetResponse &&
-                assetResponse.response &&
-                assetResponse.response.status &&
-                !assetResponse.response.status.test(/^2/)
-            ) {
-                throw new Error(assetResponse.response.statusText);
+            const formattedAssetResponse: any[] = [];
+
+            const dataExtensions = assetResponse && assetResponse.Results;
+            for (const a in dataExtensions) {
+                const dataExtension: { Name: string } = dataExtensions[a]
+                const dataExtensionPayload = await this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(dataExtension.Name)
+                formattedAssetResponse.push(dataExtensionPayload)
             }
 
-            const formattedAssetResponse =
-                assetResponse &&
-                assetResponse.items &&
-                buildFolderPaths &&
-                (await formatContentBuilderAssets(
-                    assetResponse.items,
-                    buildFolderPaths.folders
-                ));
-            return formattedAssetResponse || [];
+            const formattedFolders = buildFolderPaths.folders.map((folder) => {
+                return {
+                    id: folder.ID,
+                    name: folder.Name,
+                    parentId: folder.ParentFolder.ID,
+                    folderPath: folder.FolderPath
+                }
+            })
+
+            return {
+                folders: formattedFolders,
+                assets: formattedAssetResponse || []
+            }
         } catch (err: any) {
             return err.message;
         }

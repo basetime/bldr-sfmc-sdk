@@ -58,6 +58,7 @@ export class SFMC implements SFMC_Client {
     emailStudio: {
         searchEmailSendDefinition: Function;
         getEmailSendDefinitionActivity: Function;
+        getAssetsByFolderArray: Function;
         searchDataExtensionByName: Function;
         retrieveDataExtensionPayloadByName: Function;
         getDataExtensionFields: Function;
