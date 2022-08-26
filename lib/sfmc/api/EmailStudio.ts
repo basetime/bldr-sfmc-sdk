@@ -12,7 +12,7 @@ const { getProperties } = require('sfmc-soap-object-reference');
 const emailSendDefinition = getProperties('EmailSendDefinition');
 const dataExtensionDefinition = getProperties('DataExtension');
 const dataExtensionDefinitionField = getProperties('DataExtensionField');
-
+import { FieldTypes } from '../types/objects/sfmc_data_extension_assets';
 
 export class EmailStudio {
     client;
@@ -272,18 +272,6 @@ export class EmailStudio {
     }
 
     getDataExtensionPayload = async (dataExtension: any) => {
-        interface Field {
-            scale?: number;
-            partnerKey: string;
-            name: string;
-            defaultValue: string;
-            maxLength: number;
-            isRequired: Boolean;
-            ordinal: number;
-            isPrimaryKey: Boolean;
-            fieldType: string;
-        }
-
 
         let sendableName;
         let RelatesOnSub;
@@ -398,7 +386,7 @@ export class EmailStudio {
                 delete fieldObj.Client;
                 delete fieldObj.PartnerProperties;
 
-                const field: Field = {
+                const field: FieldTypes = {
                     partnerKey: fieldObj.PartnerKey,
                     name: fieldObj.Name,
                     defaultValue: fieldObj.DefaultValue,
@@ -430,7 +418,7 @@ export class EmailStudio {
                 name: string;
                 customerKey: string;
                 description: string;
-                fields: Field[];
+                fields: FieldTypes[];
                 category: {
                     categoryId: number;
                     folderPath: string;

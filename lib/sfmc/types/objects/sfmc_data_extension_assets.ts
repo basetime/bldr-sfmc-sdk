@@ -17,3 +17,16 @@ export interface SFMC_Data_Extension_Asset {
       folderPath: string;
     }
   }
+
+export interface FieldTypes {
+    scale?: number;
+    partnerKey: string;
+    name: string;
+    defaultValue: string;
+    maxLength: number;
+    isRequired: Boolean;
+    ordinal: number;
+    isPrimaryKey: Boolean;
+    fieldType: string;
+}
+

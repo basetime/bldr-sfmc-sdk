@@ -272,6 +272,7 @@ export class ContentBuilder {
                 assetResponse &&
                 assetResponse.category &&
                 assetResponse.category.id;
+
             const folderResponse =
                 await this.sfmc.folder.getParentFoldersRecursive({
                     contentType: 'asset',

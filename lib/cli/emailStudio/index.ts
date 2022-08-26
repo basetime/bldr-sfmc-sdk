@@ -208,7 +208,6 @@ export class EmailStudio {
                 }
             })
 
-            console.log('formatted', formattedFolders)
             return {
                 folders: formattedFolders,
                 assets: formattedAssetResponse || []
