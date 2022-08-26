@@ -7,6 +7,7 @@ import {
     MappingByActivityType,
 } from '../utils/automationActivities';
 import { capitalizeKeys } from '../utils/modifyObject';
+import { guid } from '../../cli/utils';
 const { getProperties } = require('sfmc-soap-object-reference');
 const emailSendDefinition = getProperties('EmailSendDefinition');
 const dataExtensionDefinition = getProperties('DataExtension');
@@ -187,16 +188,32 @@ export class EmailStudio {
     }
 
     getAssetsByFolderArray = async (folderIdArray: number[]) => {
-        const dataExtensionResponse = await this.client.soap.retrieve(
-            'DataExtension',
-            dataExtensionDefinition,
-            {
+
+        let requestFilter = {};
+
+        if (folderIdArray.length === 1) {
+            requestFilter = {
+                filter: {
+                    leftOperand: 'CategoryID',
+                    operator: 'equals',
+                    rightOperand: folderIdArray[0],
+                },
+            }
+        } else {
+            requestFilter = {
                 filter: {
                     leftOperand: 'CategoryID',
                     operator: 'IN',
                     rightOperand: folderIdArray,
                 },
             }
+        }
+
+
+        const dataExtensionResponse = await this.client.soap.retrieve(
+            'DataExtension',
+            dataExtensionDefinition,
+            requestFilter
         );
 
         if (
@@ -214,28 +231,7 @@ export class EmailStudio {
      * @param dataExtensionName
      * @returns
      */
-    retrieveDataExtensionPayloadByName = async(dataExtensionName: string) =>{
-        interface Field {
-            scale?: number;
-            partnerKey: string;
-            name: string;
-            defaultValue: string;
-            maxLength: number;
-            isRequired: Boolean;
-            ordinal: number;
-            isPrimaryKey: Boolean;
-            fieldType: string;
-        }
-
-        let sendableName;
-        let RelatesOnSub;
-        let retentionPeriodLength;
-        let retentionPeriod;
-        let deleteRetentionPeriod;
-        let rowRetention;
-        let resetRetention;
-        let retentionPeriodUnit;
-        let sendableFieldType;
+    retrieveDataExtensionPayloadByName = async (dataExtensionName: string) => {
 
         const dataExtension = await this.client.soap.retrieve(
             'DataExtension',
@@ -248,6 +244,57 @@ export class EmailStudio {
                 },
             }
         );
+
+        return dataExtension && this.getDataExtensionPayload(dataExtension)
+
+    }
+
+    /**
+     *
+     * @param dataExtensionName
+     * @returns
+     */
+     retrieveDataExtensionPayloadByCustomerKey = async (customerKey: string) => {
+
+        const dataExtension = await this.client.soap.retrieve(
+            'DataExtension',
+            dataExtensionDefinition,
+            {
+                filter: {
+                    leftOperand: 'CustomerKey',
+                    operator: 'equals',
+                    rightOperand: customerKey,
+                },
+            }
+        );
+
+        return this.getDataExtensionPayload(dataExtension)
+    }
+
+    getDataExtensionPayload = async (dataExtension: any) => {
+        interface Field {
+            scale?: number;
+            partnerKey: string;
+            name: string;
+            defaultValue: string;
+            maxLength: number;
+            isRequired: Boolean;
+            ordinal: number;
+            isPrimaryKey: Boolean;
+            fieldType: string;
+        }
+
+
+        let sendableName;
+        let RelatesOnSub;
+        let retentionPeriodLength;
+        let retentionPeriod;
+        let deleteRetentionPeriod;
+        let rowRetention;
+        let resetRetention;
+        let retentionPeriodUnit;
+        let sendableFieldType;
+
 
         if (
             Object.prototype.hasOwnProperty.call(dataExtension, 'Results') &&
@@ -379,11 +426,13 @@ export class EmailStudio {
 
             //Get DE Payload
             let de: {
+                bldrId: string;
                 name: string;
                 customerKey: string;
                 description: string;
                 fields: Field[];
                 category: {
+                    categoryId: number;
                     folderPath: string;
                 };
                 isSendable?: Boolean
@@ -401,11 +450,13 @@ export class EmailStudio {
                 resetRetentionPeriodOnImport?: Boolean;
                 dataRetentionPeriodUnitOfMeasure?: number;
             } = {
-                name: dataExtensionName,
-                customerKey: dataExtensionName,
+                bldrId: guid(),
+                name: dataExtension.Results[0].Name,
+                customerKey: dataExtension.Results[0].CustomerKey,
                 description: dataExtension.Results[0].Description,
                 fields: fieldArray,
                 category: {
+                    categoryId: dataExtension.Results[0].CategoryID,
                     folderPath: FolderPath,
                 },
             };
@@ -503,7 +554,9 @@ export class EmailStudio {
                 CustomerKey: string;
                 Description: string;
                 CategoryID: number;
-                Fields: any[];
+                Fields: {
+                    Field: any[];
+                }
                 IsSendable?: Boolean
                 SendableDataExtensionField?: {
                     Name: string;
@@ -522,7 +575,9 @@ export class EmailStudio {
                 "CustomerKey": dataExtension.customerKey,
                 "Description": dataExtension.description,
                 "CategoryID": dataExtension.categoryId,
-                "Fields": fieldsArr,
+                "Fields": {
+                    Field: fieldsArr
+                }
             }
 
             if (dataExtension.isSendable) {
@@ -574,7 +629,7 @@ export class EmailStudio {
         scale?: number;
     }[]) => {
         const fieldsObj = fields.map((field) => {
-            return capitalizeKeys(field)
+            return  capitalizeKeys(field)
         })
 
         return fieldsObj

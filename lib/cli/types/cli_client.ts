@@ -13,6 +13,8 @@ export interface CLI_Client {
         searchAssets: Function;
         gatherAssetsByCategoryId: Function;
         gatherAssetById: Function;
+        searchActivity: Function;
+        gatherAutomationDefinitionsByCategoryId: Function
     };
     emailStudio: {
         searchFolders: Function;

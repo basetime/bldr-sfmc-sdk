@@ -10,6 +10,5 @@
         "lib": ["es2021", "es5", "es6", "dom", "dom.iterable"]
     },
     "$schema": "https://json.schemastore.org/tsconfig",
-    "display": "Recommended",
-    "extends": "@tsconfig/recommended/tsconfig.json"
+    "display": "Recommended"
 }

@@ -63,6 +63,7 @@ export class ContentBuilderAsset {
                 throw new Error('folderIdArray argument must be an array');
             }
 
+
             return this.client.rest.post('/asset/v1/content/assets/query', {
                 page: {
                     page: 1,

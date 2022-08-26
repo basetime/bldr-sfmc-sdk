@@ -7,6 +7,9 @@ import { SFMC_Automation } from '../types/bldr_assets/sfmc_automation';
 import { MappingByActivityTypeId } from '../../sfmc/utils/automationActivities';
 import { guid } from '../utils';
 
+import { sfmc_context_mapping } from '../../sfmc/utils/sfmcContextMapping';
+import { SFMCContextMapping } from '../../sfmc/types/sfmc_context_mapping';
+
 export class AutomationStudio {
     sfmc: SFMC_Client;
     contentBuilder: any;
@@ -399,4 +402,100 @@ export class AutomationStudio {
 
         return formattedAutomationDependencies || {};
     };
+
+
+    /**
+     * Method to search Automation Studio Activity Endpoint
+     *
+     * @param {string} searchActivity Endpoint property to search
+     * @param {string} searchTerm of asset to search for
+     */
+    searchActivity = async (searchActivity: string, searchTerm: string) => {
+        try {
+            let activity: string = ''
+            switch (searchActivity) {
+                case 'ssjs':
+                    activity = 'scripts';
+                    break;
+                case 'sql':
+                    activity = 'queries';
+                    break;
+            }
+
+            const resp = await this.sfmc.automation.searchActivity(
+                activity,
+                searchTerm
+            );
+
+            if (
+                Object.prototype.hasOwnProperty.call(resp, 'items') &&
+                resp.items.length === 0
+            ) {
+                throw new Error(
+                    `No Search Items Returned for ${searchTerm}`
+                );
+            }
+
+            return resp.items.map((result: any) => {
+                let objectKey: string = '';
+                switch (searchActivity) {
+                    case 'ssjs':
+                        objectKey = 'ssjsActivityId';
+                        break;
+                    case 'sql':
+                        objectKey = 'queryDefinitionId';
+                        break;
+                }
+
+                return {
+                    Name: result.name,
+                    [objectKey]: result[objectKey],
+                    CategoryID: result.categoryId,
+                    ModifiedDate: result.modifiedDate
+                }
+            }) || [];
+        } catch (err: any) {
+            return err
+        }
+    }
+
+    gatherAutomationDefinitionsByCategoryId = async (request: {
+        contentType: string,
+        categoryId: number
+    }) => {
+
+        const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
+            request
+        );
+
+        const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+
+        const rootFolderObj = sfmc_context_mapping.find((ctxFolder => ctxFolder.contentType === request.contentType))
+        const rootFolder = rootFolderObj && rootFolderObj.name
+        const definitionApi = rootFolderObj && rootFolderObj.api
+        const isolateFolderIds: any[] =
+            buildFolderPaths.folders
+                .map(
+                    (folder: SFMC_SOAP_Folder) =>
+                        folder.Name !== rootFolder && folder.ID
+                )
+                .filter(Boolean);
+
+        const definitionReturn: any[] = [];
+        for(const i in isolateFolderIds){
+            const definitionRequest = await this.sfmc.automation.searchActivityByCategoryId({
+                searchActivity: definitionApi,
+                categoryId: isolateFolderIds[i]
+            })
+
+            definitionReturn.push(...definitionRequest.items)
+        }
+
+
+        return {
+            assets : definitionReturn || [],
+            folders: buildFolderPaths.folders
+        }
+    }
+
 }

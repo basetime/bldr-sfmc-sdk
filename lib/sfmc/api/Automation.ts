@@ -59,6 +59,25 @@ export class Automation {
             return handleError(err);
         }
     }
+     /**
+     * Search for Automation Studio Activity by Type and Name
+     *
+     * @param {string} request.searchActivity
+     * @param {string} request.searchTerm
+     * @returns
+     */
+      async searchActivityByCategoryId(request: {
+        searchActivity: string;
+        categoryId: string;
+    }) {
+        try {
+            return this.client.rest.get(
+                `/automation/v1/${request.searchActivity}/category/${request.categoryId}`
+            );
+        } catch (err: any) {
+            return handleError(err);
+        }
+    }
     /**
      * Retrieve multiple automations from array of categoryIds
      *
@@ -349,10 +368,21 @@ export class Automation {
                 Additional: result.Additional,
                 CCEmail: result.CCEmail,
             };
-        } catch (err) {
-            return handleError(err);
+        } catch (err: any) {
+            return err;
         }
     }
+
+    searchActivity = async (searchActivity: string, searchTerm: string) => {
+        try {
+            return this.client.rest.get(
+                `/automation/v1/${searchActivity}?$filter=name='${searchTerm}'`
+            );
+        } catch (err: any) {
+           return err;
+        }
+    }
+
     /**
      *
      * @param asset
@@ -368,7 +398,7 @@ export class Automation {
 
             return resp;
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
     /**

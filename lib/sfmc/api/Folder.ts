@@ -168,6 +168,7 @@ export class Folder {
         const rootFolderContext = this.sfmc_context.find(
             (ctx) => ctx.contentType === request.contentType
         );
+
         if (rootFolderContext) {
             const rootFolderRequest = await this.search({
                 contentType: request.contentType,
@@ -299,7 +300,7 @@ export class Folder {
                 folders.shift();
             } while (folders.length !== 0);
 
-            return results;
+            return results || [];
         } catch (err) {
             console.log(err);
             return handleError(err);
@@ -317,8 +318,8 @@ export class Folder {
         categoryId: number;
     }) {
         let results: any[] = [];
-        let up = await this.getParentFoldersRecursive(request);
-        let down = await this.getSubfoldersRecursive(request);
+        let up = await this.getParentFoldersRecursive(request) || [];
+        let down = await this.getSubfoldersRecursive(request) || [];
 
         return [
             ...new Map(

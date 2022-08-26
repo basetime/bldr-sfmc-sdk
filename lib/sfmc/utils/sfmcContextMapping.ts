@@ -19,6 +19,20 @@ const sfmc_context_mapping: SFMCContextMapping[] = [
         context: 'automationStudio',
         contentType: 'automations',
     },
+    {
+        name: 'Query',
+        rootName: 'Query',
+        context: 'automationStudio',
+        contentType: 'queryactivity',
+        api: 'queries'
+    },
+    {
+        name: 'Scripts',
+        rootName: 'Scripts',
+        context: 'automationStudio',
+        contentType: 'ssjsactivity',
+        api: 'scripts'
+    },
 
 ];
 

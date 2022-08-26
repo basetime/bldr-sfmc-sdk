@@ -33,12 +33,15 @@ export interface SFMC_Client {
         getAutomationActivity: Function;
         getAutomationActivities: Function;
         patchAutomationAsset: Function;
+        searchActivity: Function;
+        searchActivityByCategoryId: Function
     };
     emailStudio: {
         searchEmailSendDefinition: Function;
         getEmailSendDefinitionActivity: Function;
         getAssetsByFolderArray: Function;
         retrieveDataExtensionPayloadByName: Function;
+        retrieveDataExtensionPayloadByCustomerKey: Function;
         searchDataExtensionByName: Function;
         postAsset: Function;
     }
