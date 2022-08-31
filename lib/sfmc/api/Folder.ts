@@ -7,397 +7,395 @@ const { getProperties } = require('sfmc-soap-object-reference');
 const DataFolder = getProperties('DataFolder');
 
 export class Folder {
-    client;
-    sfmc_context;
-    constructor(client: Client, sfmc_context_mapping: SFMCContextMapping[]) {
-        this.client = client;
-        this.sfmc_context = sfmc_context_mapping;
-    }
-    /**
-     * Search SFMC Folders using SOAP DataFolder Object
-     *
-     * @param {string} request.contentType
-     * @param {string} request.searchKey
-     * @param {string} request.searchTerm
-     * @returns
-     */
-    async search(request: {
-        contentType: string;
-        searchKey: string;
-        searchTerm: string;
-    }): Promise<{
-        OverallStatus: string;
-        Results: any[];
-    }> {
-        try {
-            const resp = await this.client.soap.retrieve(
-                'DataFolder',
-                DataFolder,
-                {
-                    filter: {
-                        leftOperand: {
-                            leftOperand: 'ContentType',
-                            operator: 'equals',
-                            rightOperand: request.contentType,
-                        },
-                        operator: 'AND',
-                        rightOperand: {
-                            leftOperand: request.searchKey,
-                            operator: 'like',
-                            rightOperand: request.searchTerm,
-                        },
-                    },
-                }
-            );
-
-            if (resp.OverallStatus !== 'OK') {
-                return resp.OverallStatus;
-            }
-
-            return resp;
-        } catch (err: any) {
-            return handleError(err);
+  client;
+  sfmc_context;
+  constructor(client: Client, sfmc_context_mapping: SFMCContextMapping[]) {
+    this.client = client;
+    this.sfmc_context = sfmc_context_mapping;
+  }
+  /**
+   * Search SFMC Folders using SOAP DataFolder Object
+   *
+   * @param {string} request.contentType
+   * @param {string} request.searchKey
+   * @param {string} request.searchTerm
+   * @returns
+   */
+  async search(request: {
+    contentType: string;
+    searchKey: string;
+    searchTerm: string;
+  }): Promise<{
+    OverallStatus: string;
+    Results: any[];
+  }> {
+    try {
+      const resp = await this.client.soap.retrieve(
+        'DataFolder',
+        DataFolder,
+        {
+          filter: {
+            leftOperand: {
+              leftOperand: 'ContentType',
+              operator: 'equals',
+              rightOperand: request.contentType,
+            },
+            operator: 'AND',
+            rightOperand: {
+              leftOperand: request.searchKey,
+              operator: 'like',
+              rightOperand: request.searchTerm,
+            },
+          },
         }
+      );
+
+      if (resp.OverallStatus !== 'OK') {
+        return resp.OverallStatus;
+      }
+
+      return resp;
+    } catch (err: any) {
+      return handleError(err);
     }
-    /**
-     * Get a single SFMC Folder Object via SOAP API
-     * If subfolders === false id refers to the folder you are retrieving
-     * If subfolders === true id refers to the parent folder
-     *
-     * @param {string} request.contentType
-     * @param {number} request.categoryId
-     * @returns
-     */
-    async getFolder(request: {
-        contentType: string;
-        categoryId: number;
-    }): Promise<{
+  }
+  /**
+   * Get a single SFMC Folder Object via SOAP API
+   * If subfolders === false id refers to the folder you are retrieving
+   * If subfolders === true id refers to the parent folder
+   *
+   * @param {string} request.contentType
+   * @param {number} request.categoryId
+   * @returns
+   */
+  async getFolder(request: {
+    contentType: string;
+    categoryId: number;
+  }): Promise<{
+    OverallStatus: string;
+    Results: SFMC_SOAP_Folder[];
+  }> {
+    try {
+      const resp = await this.client.soap.retrieve(
+        'DataFolder',
+        DataFolder,
+        {
+          filter: {
+            leftOperand: {
+              leftOperand: 'ContentType',
+              operator: 'equals',
+              rightOperand: request.contentType,
+            },
+            operator: 'AND',
+            rightOperand: {
+              leftOperand: 'ID',
+              operator: 'equals',
+              rightOperand: request.categoryId,
+            },
+          },
+        }
+      );
+
+      if (resp.OverallStatus !== 'OK') {
+        throw new Error('Unable to Retrieve Folders');
+      }
+
+      return resp;
+    } catch (err: any) {
+      return handleError(err);
+    }
+  }
+  /**
+   * Get SFMC Subfolders based on parentId Object via SOAP API
+   *
+   * @param {string} request.contentType
+   * @param {number} request.parentId
+   * @returns
+   */
+  async getSubfolders(request: {
+    contentType: string;
+    parentId: number;
+  }): Promise<SFMC_SOAP_Folder[]> {
+    try {
+      type folders = SFMC_SOAP_Folder;
+      const results: folders[] = [];
+
+      const response: {
         OverallStatus: string;
         Results: SFMC_SOAP_Folder[];
-    }> {
-        try {
-            const resp = await this.client.soap.retrieve(
-                'DataFolder',
-                DataFolder,
-                {
-                    filter: {
-                        leftOperand: {
-                            leftOperand: 'ContentType',
-                            operator: 'equals',
-                            rightOperand: request.contentType,
-                        },
-                        operator: 'AND',
-                        rightOperand: {
-                            leftOperand: 'ID',
-                            operator: 'equals',
-                            rightOperand: request.categoryId,
-                        },
-                    },
-                }
-            );
+      } = await this.client.soap.retrieve('DataFolder', DataFolder, {
+        filter: {
+          leftOperand: {
+            leftOperand: 'ContentType',
+            operator: 'equals',
+            rightOperand: request.contentType,
+          },
+          operator: 'AND',
+          rightOperand: {
+            leftOperand: 'ParentFolder.ID',
+            operator: 'equals',
+            rightOperand: request.parentId,
+          },
+        },
+      });
 
-            if (resp.OverallStatus !== 'OK') {
-                throw new Error('Unable to Retrieve Folders');
-            }
+      if (response && response.OverallStatus !== 'OK') {
+        throw new Error('Unable to Retrieve Folders');
+      }
 
-            return resp;
-        } catch (err: any) {
-            return handleError(err);
-        }
+      const responseResults = response.Results;
+      results.push(...responseResults);
+      return results;
+    } catch (err: any) {
+      return handleError(err);
     }
-    /**
-     * Get SFMC Subfolders based on parentId Object via SOAP API
-     *
-     * @param {string} request.contentType
-     * @param {number} request.parentId
-     * @returns
-     */
-    async getSubfolders(request: {
-        contentType: string;
-        parentId: number;
-    }): Promise<SFMC_SOAP_Folder[]> {
-        try {
-            type folders = SFMC_SOAP_Folder;
-            const results: folders[] = [];
+  }
+  /**
+   * Method to compile folder path for for Asset Clone
+   *
+   * @param {string} request.contentType
+   * @param {number} request.categoryId
+   * @returns {Promise<Object[]>}
+   */
+  async getParentFoldersRecursive(request: {
+    contentType: string;
+    categoryId: number;
+  }): Promise<any[]> {
+    let parentId;
+    let stopFolderId;
+    let results: object[] = [];
 
-            const response: {
-                OverallStatus: string;
-                Results: SFMC_SOAP_Folder[];
-            } = await this.client.soap.retrieve('DataFolder', DataFolder, {
-                filter: {
-                    leftOperand: {
-                        leftOperand: 'ContentType',
-                        operator: 'equals',
-                        rightOperand: request.contentType,
-                    },
-                    operator: 'AND',
-                    rightOperand: {
-                        leftOperand: 'ParentFolder.ID',
-                        operator: 'equals',
-                        rightOperand: request.parentId,
-                    },
-                },
-            });
+    const rootFolderContext = this.sfmc_context.find(
+      (ctx) => ctx.contentType === request.contentType
+    );
 
-            if (response && response.OverallStatus !== 'OK') {
-                throw new Error('Unable to Retrieve Folders');
-            }
+    if (rootFolderContext) {
+      const rootFolderRequest = await this.search({
+        contentType: request.contentType,
+        searchKey: 'Name',
+        searchTerm: rootFolderContext.rootName,
+      });
 
-            const responseResults = response.Results;
-            results.push(...responseResults);
-            return results;
-        } catch (err: any) {
-            return handleError(err);
-        }
+      if (
+        rootFolderRequest &&
+        rootFolderRequest.Results &&
+        rootFolderRequest.Results.length
+      ) {
+        results = [...rootFolderRequest.Results];
+        stopFolderId = rootFolderRequest.Results[0].ParentFolder.ID;
+      }
     }
-    /**
-     * Method to compile folder path for for Asset Clone
-     *
-     * @param {string} request.contentType
-     * @param {number} request.categoryId
-     * @returns {Promise<Object[]>}
-     */
-    async getParentFoldersRecursive(request: {
-        contentType: string;
-        categoryId: number;
-    }): Promise<any[]> {
-        let parentId;
-        let stopFolderId;
-        let results: object[] = [];
 
-        const rootFolderContext = this.sfmc_context.find(
-            (ctx) => ctx.contentType === request.contentType
-        );
+    const initialCategory = await this.getFolder(request);
 
-        if (rootFolderContext) {
-            const rootFolderRequest = await this.search({
-                contentType: request.contentType,
-                searchKey: 'Name',
-                searchTerm: rootFolderContext.rootName,
-            });
+    if (initialCategory.OverallStatus !== 'OK') {
+      console.log(initialCategory);
+    }
 
-            if (
-                rootFolderRequest &&
-                rootFolderRequest.Results &&
-                rootFolderRequest.Results.length
-            ) {
-                results = [...rootFolderRequest.Results];
-                stopFolderId = rootFolderRequest.Results[0].ID;
-            }
-        }
+    if (
+      initialCategory &&
+      initialCategory.Results &&
+      initialCategory.Results.length
+    ) {
+      const initResult = initialCategory.Results[0];
+      results = [...results, ...initialCategory.Results];
+      parentId =
+        (initResult &&
+          initResult.ParentFolder &&
+          initResult.ParentFolder.ID) ||
+        null;
+    }
 
-        const initialCategory = await this.getFolder(request);
+    if (parentId) {
+      do {
+        const parentRequest =
+          parentId &&
+          (await this.getFolder({
+            contentType: request.contentType,
+            categoryId: parentId,
+          }));
 
-        if (initialCategory.OverallStatus !== 'OK') {
-            console.log(initialCategory);
+        if (parentRequest && parentRequest.OverallStatus !== 'OK') {
+          console.log(parentRequest);
         }
 
         if (
-            initialCategory &&
-            initialCategory.Results &&
-            initialCategory.Results.length
+          parentRequest &&
+          parentRequest.Results &&
+          parentRequest.Results.length
         ) {
-            const initResult = initialCategory.Results[0];
-            results = [...results, ...initialCategory.Results];
-            parentId =
-                (initResult &&
-                    initResult.ParentFolder &&
-                    initResult.ParentFolder.ID) ||
-                null;
+          const parentResult: {
+            ParentFolder: {
+              ID: number;
+            };
+          } = parentRequest.Results[0];
+
+          results.push(...parentRequest.Results);
+          parentId =
+            (parentResult &&
+              parentResult.ParentFolder &&
+              parentResult.ParentFolder.ID)
+        }
+      } while (parentId !== 0);
+    }
+    return results;
+  }
+  /**
+   * Method to gather and format all SFMC Folders recursively from top level starting point
+   *
+   * @param {string} request.contentType
+   * @param {integer} request.categoryId
+   * @returns
+   */
+  async getSubfoldersRecursive(request: {
+    contentType: string;
+    categoryId: number;
+  }) {
+    try {
+      let folders: number[] = [];
+      let results: any[] = [];
+
+      // Get target folder from SFMC
+      let rootRequest = await this.getFolder(request);
+
+      // Ensure response has results
+      if (!Object.prototype.hasOwnProperty.call(rootRequest, 'Results')) {
+        throw new Error(`Unable to find folder`);
+      }
+
+      if (
+        rootRequest &&
+        rootRequest.Results &&
+        rootRequest.Results.length
+      ) {
+        const rootIdArray = rootRequest.Results.map(
+          (folder) => folder.ID
+        );
+        folders.push(...rootIdArray);
+        results = [...results, ...rootRequest.Results];
+      }
+
+      // Recursively get folders from SFMC
+      do {
+        let categoryId = folders[0];
+        // SFMC Folder response checking for subfolders
+        let subfolderRequest = await this.getSubfolders({
+          contentType: request.contentType,
+          parentId: categoryId,
+        });
+
+        if (
+          subfolderRequest &&
+          Array.isArray(subfolderRequest) &&
+          subfolderRequest.length > 0
+        ) {
+          let subfolderIdArray = subfolderRequest.map(
+            (folder: { ID: number }) => folder.ID
+          );
+          folders.push(...subfolderIdArray);
+          results = [...results, ...subfolderRequest];
         }
 
-        if (parentId) {
-            do {
-                const parentRequest =
-                    parentId &&
-                    (await this.getFolder({
-                        contentType: request.contentType,
-                        categoryId: parentId,
-                    }));
+        folders.shift();
+      } while (folders.length !== 0);
 
-                if (parentRequest && parentRequest.OverallStatus !== 'OK') {
-                    console.log(parentRequest);
-                }
-
-                if (
-                    parentRequest &&
-                    parentRequest.Results &&
-                    parentRequest.Results.length
-                ) {
-                    const parentResult: {
-                        ParentFolder: {
-                            ID: number;
-                        };
-                    } = parentRequest.Results[0];
-
-                    results.push(...parentRequest.Results);
-                    parentId =
-                        (parentResult &&
-                            parentResult.ParentFolder &&
-                            parentResult.ParentFolder.ID) ||
-                        null;
-                }
-            } while (!stopFolderId || parentId === stopFolderId);
-        }
-        return results;
+      return results || [];
+    } catch (err) {
+      console.log(err);
+      return handleError(err);
     }
-    /**
-     * Method to gather and format all SFMC Folders recursively from top level starting point
-     *
-     * @param {string} request.contentType
-     * @param {integer} request.categoryId
-     * @returns
-     */
-    async getSubfoldersRecursive(request: {
-        contentType: string;
-        categoryId: number;
-    }) {
-        try {
-            let folders: number[] = [];
-            let results: any[] = [];
+  }
+  /**
+   * Retrieve all folders top and bottom from a specific categoryId
+   *
+   * @param {string} request.contentType
+   * @param {integer} request.categoryId
+   * @returns
+   */
+  async getFoldersFromMiddle(request: {
+    contentType: string;
+    categoryId: number;
+  }) {
+    let up = await this.getParentFoldersRecursive(request) || [];
+    let down = await this.getSubfoldersRecursive(request) || [];
 
-            // Get target folder from SFMC
-            let rootRequest = await this.getFolder(request);
+    return [
+      ...new Map(
+        [...up, ...down].map((item) => [item['Name'], item])
+      ).values(),
+    ];
+  }
+  /**
+   * Create a folder in SFMC via SOAP Data Folder Object
+   *
+   * @param request.contentType
+   * @param request.name
+   * @param request.parentId
+   * @returns {Promise<void>}
+   */
+  async createFolder(request: {
+    contentType: string;
+    name: string;
+    parentId: number;
+  }): Promise<void> {
+    try {
+      const resp = await this.client.soap.create(
+        'DataFolder',
+        {
+          ContentType: request.contentType,
+          Name: request.name,
+          Description: request.name,
+          IsActive: true,
+          IsEditable: true,
+          AllowChildren: true,
+          ParentFolder: {
+            ID: request.parentId,
+          },
+        },
+        {}
+      );
 
-            // Ensure response has results
-            if (!Object.prototype.hasOwnProperty.call(rootRequest, 'Results')) {
-                throw new Error(`Unable to find folder`);
-            }
+      return resp;
+    } catch (err: any) {
+      if (err.response.data.includes('cannot contain child folders')) {
+        await this._updateAllowChildren({
+          contentType: request.contentType,
+          categoryId: request.parentId,
+        });
+        const errCreate = await this.createFolder(request);
+        return errCreate;
+      }
 
-            if (
-                rootRequest &&
-                rootRequest.Results &&
-                rootRequest.Results.length
-            ) {
-                const rootIdArray = rootRequest.Results.map(
-                    (folder) => folder.ID
-                );
-                folders.push(...rootIdArray);
-                results = [...results, ...rootRequest.Results];
-            }
-
-            // Recursively get folders from SFMC
-            do {
-                let categoryId = folders[0];
-                // SFMC Folder response checking for subfolders
-                let subfolderRequest = await this.getSubfolders({
-                    contentType: request.contentType,
-                    parentId: categoryId,
-                });
-
-                if (
-                    subfolderRequest &&
-                    Array.isArray(subfolderRequest) &&
-                    subfolderRequest.length > 0
-                ) {
-                    let subfolderIdArray = subfolderRequest.map(
-                        (folder: { ID: number }) => folder.ID
-                    );
-                    folders.push(...subfolderIdArray);
-                    results = [...results, ...subfolderRequest];
-                }
-
-                folders.shift();
-            } while (folders.length !== 0);
-
-            return results || [];
-        } catch (err) {
-            console.log(err);
-            return handleError(err);
-        }
+      return handleError(err);
     }
-    /**
-     * Retrieve all folders top and bottom from a specific categoryId
-     *
-     * @param {string} request.contentType
-     * @param {integer} request.categoryId
-     * @returns
-     */
-    async getFoldersFromMiddle(request: {
-        contentType: string;
-        categoryId: number;
-    }) {
-        let results: any[] = [];
-        let up = await this.getParentFoldersRecursive(request) || [];
-        let down = await this.getSubfoldersRecursive(request) || [];
+  }
+  /**
+   * When a folder exists in SFMC and is created in the UI, it by default does not allow children folders. This function updates that permission on the folder.
+   *
+   * @param request.contentType
+   * @param request.categoryId
+   * @returns
+   */
+  async _updateAllowChildren(request: {
+    contentType: string;
+    categoryId: number;
+  }) {
+    try {
+      const resp = await this.client.soap.update(
+        'DataFolder',
+        {
+          ID: request.categoryId,
+          ContentType: request.contentType,
+          IsActive: true,
+          IsEditable: true,
+          AllowChildren: true,
+        },
+        {}
+      );
 
-        return [
-            ...new Map(
-                [...up, ...down].map((item) => [item['Name'], item])
-            ).values(),
-        ];
+      return resp;
+    } catch (err) {
+      return handleError(err);
     }
-    /**
-     * Create a folder in SFMC via SOAP Data Folder Object
-     *
-     * @param request.contentType
-     * @param request.name
-     * @param request.parentId
-     * @returns {Promise<void>}
-     */
-    async createFolder(request: {
-        contentType: string;
-        name: string;
-        parentId: number;
-    }): Promise<void> {
-        try {
-            const resp = await this.client.soap.create(
-                'DataFolder',
-                {
-                    ContentType: request.contentType,
-                    Name: request.name,
-                    Description: request.name,
-                    IsActive: true,
-                    IsEditable: true,
-                    AllowChildren: true,
-                    ParentFolder: {
-                        ID: request.parentId,
-                    },
-                },
-                {}
-            );
-
-            return resp;
-        } catch (err: any) {
-            if (err.response.data.includes('cannot contain child folders')) {
-                await this._updateAllowChildren({
-                    contentType: request.contentType,
-                    categoryId: request.parentId,
-                });
-                const errCreate = await this.createFolder(request);
-                return errCreate;
-            }
-
-            return handleError(err);
-        }
-    }
-    /**
-     * When a folder exists in SFMC and is created in the UI, it by default does not allow children folders. This function updates that permission on the folder.
-     *
-     * @param request.contentType
-     * @param request.categoryId
-     * @returns
-     */
-    async _updateAllowChildren(request: {
-        contentType: string;
-        categoryId: number;
-    }) {
-        try {
-            const resp = await this.client.soap.update(
-                'DataFolder',
-                {
-                    ID: request.categoryId,
-                    ContentType: request.contentType,
-                    IsActive: true,
-                    IsEditable: true,
-                    AllowChildren: true,
-                },
-                {}
-            );
-
-            return resp;
-        } catch (err) {
-            return handleError(err);
-        }
-    }
+  }
 }

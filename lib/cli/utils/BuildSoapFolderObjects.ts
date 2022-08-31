@@ -5,7 +5,9 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
     const simplifiedFolders = await simplifiedFolderResponse(folderResponse);
     const parentFolders = ['Content Builder', 'my automations', 'Data Extensions', 'Query', 'Scripts'];
     let folders = await uniqueArrayByKey(simplifiedFolders, 'ID');
-    const foldersOut = []; //object[]
+    folders = folders.sort((a,b) => a.ID - b.ID)
+
+    const foldersOut = [];
     const compiledFolderPaths = [];
     let path = '';
 
@@ -38,7 +40,7 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
     do {
         for (const f in folders) {
             const folder = folders[f];
-            const parentFolder = folder.ParentFolder.Name;
+            const parentFolder = folder.ParentFolder.Name || parentFolderObject.Name;
             let parentIsRootFolder = parentFolder === rootFolder ? true : false;
 
             if (parentIsRootFolder) {
@@ -46,10 +48,12 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
                 path += folder && folder.Name && `${rootFolder}/${folder.Name}`;
                 // Add FolderPath to folder object
                 folder.FolderPath = path;
+
                 // Add Folder Object to Output Array
                 foldersOut.push(folder);
                 // Add Folder Path CompiledFolderPaths Array
                 compiledFolderPaths.push(path);
+
                 // Remove processed Object from Original Array
                 folders.splice(
                     folders.findIndex(
@@ -57,10 +61,12 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
                     ),
                     1
                 );
+
                 // Reset Path String
                 path = '';
             } else {
                 let parentId = folder.ParentFolder.ID;
+
                 let compiledParentFolder = foldersOut.find(
                     (compiledFolder) => compiledFolder.ID === parentId
                 );
@@ -77,13 +83,15 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
                     foldersOut.push(folder);
                     // Add Folder Path CompiledFolderPaths Array
                     compiledFolderPaths.push(path);
+
                     // Remove processed Object from Original Array
                     folders.splice(
                         folders.findIndex(
-                            (orgFolder) => orgFolder.ID === folder.ID
+                            (orgFolder) => Number(orgFolder.ID) === Number(folder.ID)
                         ),
                         1
                     );
+
                     // Reset Path String
                     path = '';
                 }

@@ -180,7 +180,6 @@ export class ContentBuilder {
                 request
             );
 
-
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
             const isolateFolderIds =
                 buildFolderPaths &&
@@ -259,6 +258,7 @@ export class ContentBuilder {
                     assetResponse.items[0]) ||
                 assetResponse;
 
+
             if (
                 assetResponse &&
                 assetResponse.response &&
@@ -273,13 +273,23 @@ export class ContentBuilder {
                 assetResponse.category &&
                 assetResponse.category.id;
 
+
             const folderResponse =
-                await this.sfmc.folder.getParentFoldersRecursive({
+                await this.sfmc.folder.getFoldersFromMiddle({
                     contentType: 'asset',
                     categoryId,
                 });
 
+            // const folderResponse = [
+            //     ...new Map(
+            //         [...folderRequest].map((item) => [item['Name'], item])
+            //     ).values(),
+            // ];
+
+
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+
+
             const formattedAssetResponse =
                 assetResponse &&
                 buildFolderPaths &&
@@ -287,6 +297,7 @@ export class ContentBuilder {
                     assetResponse,
                     buildFolderPaths.folders
                 ));
+
 
                 const formattedFolders = buildFolderPaths.folders.map((folder) => {
                     return {
@@ -296,6 +307,7 @@ export class ContentBuilder {
                         folderPath: folder.FolderPath
                       }
                 })
+
 
                 return {
                     folders: formattedFolders,
