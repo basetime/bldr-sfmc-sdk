@@ -280,13 +280,6 @@ export class ContentBuilder {
                     categoryId,
                 });
 
-            // const folderResponse = [
-            //     ...new Map(
-            //         [...folderRequest].map((item) => [item['Name'], item])
-            //     ).values(),
-            // ];
-
-
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
 
@@ -347,10 +340,10 @@ export class ContentBuilder {
     };
 
 
-    async setContentBuilderPackageAssets(
+    setContentBuilderPackageAssets = async (
         packageOut: any,
         contextAssets: any[]
-    ) {
+    ) => {
         packageOut['contentBuilder'] = {};
         return packageOut['contentBuilder']['assets'] = contextAssets.map(
             (asset: any) => {
@@ -440,231 +433,15 @@ export class ContentBuilder {
                         }
 
                     }
-
-                    //     if (dependency) {
-                    //         let dependencyContext = dependency.context;
-                    //         dependencies[dependencyContext] =
-                    //             dependencies[dependencyContext] || Array();
-
-                    //         content = content.replace(
-                    //             dependency.matchedValue,
-                    //             dependency.payload.bldrId
-                    //         );
-
-                    //         dependencies[dependencyContext].push(dependency);
-
-                    //         asset.dependencies = asset.dependencies || new Array();
-
-                    //         asset.dependencies.push({
-                    //             context: dependencyContext,
-                    //             reference,
-                    //             bldrId: dependency.payload.bldrId,
-                    //         });
-
-                    //         // remove matched value from dependency object
-                    //         delete dependency.matchedValue;
-
-                    //     } else {
-                    //         let refBldrId;
-                    //         let assetRefObject;
-                    //         let dependencyContext;
-
-                    //         switch (reference) {
-                    //             case 'Lookup':
-                    //             case 'LookupOrderedRows':
-                    //             case 'LookupOrderedRowsCS':
-                    //             case 'LookupRows':
-                    //             case 'LookupRowsCS':
-                    //             case 'DataExtensionRowCount':
-                    //             case 'DeleteData':
-                    //             case 'DeleteDE':
-                    //             case 'InsertDE':
-                    //             case 'UpdateData':
-                    //             case 'UpdateDE':
-                    //             case 'UpsertData':
-                    //             case 'UpsertDE':
-                    //             case 'ClaimRow':
-
-                    //                 refBldrId = '';
-                    //                 dependencyContext = 'emailStudio';
-
-                    //                 break;
-                    //             case 'ContentBlockById':
-                    //             case 'ContentBlockByID':
-                    //                 assetRefObject = packageOut['contentBuilder']['assets'].find((packageAsset: any) =>
-                    //                     Number(packageAsset.id) === Number(matchedValue)
-                    //                 );
-
-                    //                 refBldrId = assetRefObject?.bldrId;
-                    //                 dependencyContext = 'contentBuilder';
-
-                    //                 break;
-                    //             case 'ContentBlockByName':
-                    //                 assetRefObject = packageOut['contentBuilder']['assets'].find((packageAsset: any) => {
-                    //                     return (
-                    //                         `${packageAsset.category.folderPath.replaceAll(
-                    //                             '/',
-                    //                             '\\'
-                    //                         )}\\${packageAsset.name}` ===
-                    //                         matchedValue
-                    //                     );
-                    //                 });
-
-                    //                 if (!assetRefObject) {
-                    //                     assetRefObject = packageOut['contentBuilder']['assets'].find(
-                    //                         (packageAsset: any) => {
-                    //                             return (
-                    //                                 `${packageAsset.category.folderPath.replaceAll(
-                    //                                     '/',
-                    //                                     '\\\\'
-                    //                                 )}\\\\${packageAsset.name}` ===
-                    //                                 matchedValue
-                    //                             );
-                    //                         }
-                    //                     );
-                    //                 }
-
-                    //                 refBldrId = assetRefObject.bldrId;
-                    //                 dependencyContext = 'contentBuilder';
-                    //                 break;
-                    //         }
-
-                    //         content = content.replace(matchedValue, refBldrId);
-
-                    //         asset.dependencies =
-                    //             asset.dependencies || new Array();
-
-                    //         asset.dependencies.push({
-                    //             context: dependencyContext,
-                    //             reference,
-                    //             bldrId: refBldrId,
-                    //         });
-                    //     }
-                    // }
                 }
-
-                // delete asset.id;
-                // delete asset.customerKey;
-                // delete asset.category.id;
-                // delete asset.category.name;
-                // delete asset.category.parentId;
-
-                // asset = await this.updateContentBuilderAssetContent(asset, content);
-
-                //         if (dependency) {
-                //             let dependencyContext = dependency.context;
-                //             dependencies[dependencyContext] =
-                //                 dependencies[dependencyContext] || Array();
-
-                //             content = content.replace(
-                //                 dependency.matchedValue,
-                //                 dependency.payload.bldrId
-                //             );
-
-                //             // remove matched value from dependency object
-                //             delete dependency.matchedValue;
-
-                //             dependencies[dependencyContext].push(dependency);
-
-                //             asset.dependencies =
-                //                 asset.dependencies || new Array();
-                //             asset.dependencies.push({
-                //                 context: dependencyContext,
-                //                 ref: ref,
-                //                 bldrId: dependency.payload.bldrId,
-                //             });
-                //         } else {
-                //         let refBldrId;
-                //         let assetRefObject;
-                //         let dependencyContext;
-
-                //         switch (reference) {
-                //             case 'Lookup':
-                //             case 'LookupOrderedRows':
-                //             case 'LookupOrderedRowsCS':
-                //             case 'LookupRows':
-                //             case 'LookupRowsCS':
-                //             case 'DataExtensionRowCount':
-                //             case 'DeleteData':
-                //             case 'DeleteDE':
-                //             case 'InsertDE':
-                //             case 'UpdateData':
-                //             case 'UpdateDE':
-                //             case 'UpsertData':
-                //             case 'UpsertDE':
-                //             case 'ClaimRow':
-
-                //                 refBldrId = '';
-                //                 dependencyContext = 'dataExtension';
-
-                //                 break;
-                //             case 'ContentBlockById':
-                //             case 'ContentBlockByID':
-                //                 assetRefObject = packageOut['contentBuilder']['assets'].find((packageAsset: any) =>
-                //                     packageAsset.id === Number(matchedValue)
-                //                 );
-
-                //                 refBldrId = assetRefObject?.bldrId;
-                //                 dependencyContext = 'contentBuilder';
-
-                //                 break;
-                //             case 'ContentBlockByName':
-                //                 assetRefObject = assets.find((depAsset) => {
-                //                     return (
-                //                         `${depAsset.category.folderPath.replaceAll(
-                //                             '/',
-                //                             '\\'
-                //                         )}\\${depAsset.name}` ===
-                //                         matchedValue
-                //                     );
-                //                 });
-
-                //                 if (!assetRefObject) {
-                //                     assetRefObject = assets.find(
-                //                         (depAsset) => {
-                //                             return (
-                //                                 `${depAsset.category.folderPath.replaceAll(
-                //                                     '/',
-                //                                     '\\\\'
-                //                                 )}\\\\${depAsset.name}` ===
-                //                                 matchedValue
-                //                             );
-                //                         }
-                //                     );
-                //                 }
-
-                //                 refBldrId = assetRefObject.bldrId;
-                //                 dependencyContext = 'contentBuilder';
-                //                 break;
-                //         }
-
-                //         content = content.replace(matchedValue, refBldrId);
-
-                //         asset.dependencies =
-                //             asset.dependencies || new Array();
-                //         asset.dependencies.push({
-                //             context: dependencyContext,
-                //             ref: ref,
-                //             bldrId: refBldrId,
-                //         });
-                //     }
-                //     }
-                // }
-
-                // delete asset.id;
-                // delete asset.customerKey;
-                // delete asset.category.id;
-                // delete asset.category.name;
-                // delete asset.category.parentId;
-
-                // asset = await utils.updateAssetContent(asset, content);
             }
+
             return {
                 newDependencies,
                 packageOut
             }
-        } catch (err) {
-            console.log(err)
+        } catch (err: any) {
+            console.log('Some dependencies in package do not exist')
         }
 
     }
