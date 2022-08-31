@@ -601,7 +601,6 @@ export class EmailStudio {
             return this.client.soap.create('DataExtension', dataExtensionCreate, {})
 
         } catch (err) {
-            console.log(err)
             return err
         }
     }
