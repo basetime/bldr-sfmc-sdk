@@ -160,7 +160,7 @@ export class Folder {
   async getParentFoldersRecursive(request: {
     contentType: string;
     categoryId: number;
-  }): Promise<any[]> {
+  }): Promise<{results: any[], stop: Boolean}> {
     let parentId;
     let stopFolderId;
     let results: object[] = [];
@@ -183,6 +183,14 @@ export class Folder {
       ) {
         results = [...rootFolderRequest.Results];
         stopFolderId = rootFolderRequest.Results[0].ParentFolder.ID;
+
+        if(rootFolderRequest.Results[0].ID === request.categoryId){
+            console.log('return matched root')
+            return {
+                results,
+                stop: true
+            }
+        }
       }
     }
 
@@ -238,7 +246,10 @@ export class Folder {
         }
       } while (parentId !== 0);
     }
-    return results;
+    return {
+        results,
+        stop: false
+    };
   }
   /**
    * Method to gather and format all SFMC Folders recursively from top level starting point
@@ -317,11 +328,11 @@ export class Folder {
     categoryId: number;
   }) {
     let up = await this.getParentFoldersRecursive(request) || [];
-    let down = await this.getSubfoldersRecursive(request) || [];
+    let down = !up.stop && await this.getSubfoldersRecursive(request) || [];
 
     return [
       ...new Map(
-        [...up, ...down].map((item) => [item['Name'], item])
+        [...up.results, ...down].map((item) => [item['Name'], item])
       ).values(),
     ];
   }
