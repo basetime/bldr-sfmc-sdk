@@ -295,7 +295,8 @@ export class EmailStudio {
                 contentType: 'dataextension',
                 categoryId: dataExtension.Results[0].CategoryID
             })
-            const compiledFolderPaths = await buildFolderPathsSoap(folderPathResponse)
+
+            const compiledFolderPaths = await buildFolderPathsSoap(folderPathResponse.results)
             const dataExtensionFolderObject = compiledFolderPaths.folders.find((folder) => folder.ID === dataExtension.Results[0].CategoryID)
             const { FolderPath } = dataExtensionFolderObject
 

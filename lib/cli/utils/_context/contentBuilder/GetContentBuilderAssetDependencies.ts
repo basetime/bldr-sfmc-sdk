@@ -168,12 +168,12 @@ const setUpdatedPackageAssetContent = (
         case 'ClaimRow':
             assetContent = assetContent.replaceAll(matchedValue, bldrId)
             break;
-        case 'ContentBlockById':
+         case 'ContentBlockById':
         case 'ContentBlockByID':
         case 'ContentBlockbyID':
             assetContent = assetContent.replaceAll(matchedValue, bldrId)
             break;
-        case 'ContentBlockByName':
+         case 'ContentBlockByName':
             assetContent = assetContent.replaceAll(matchedValue, bldrId)
 
             break;

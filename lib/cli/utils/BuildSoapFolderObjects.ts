@@ -2,6 +2,7 @@ import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
 import { uniqueArrayByKey } from '.';
 
 const buildFolderPathsSoap = async (folderResponse: any[]) => {
+    console.log('in build', folderResponse)
     const simplifiedFolders = await simplifiedFolderResponse(folderResponse);
     const parentFolders = ['Content Builder', 'my automations', 'Data Extensions', 'Query', 'Scripts'];
     let folders = await uniqueArrayByKey(simplifiedFolders, 'ID');
@@ -106,6 +107,7 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
 };
 
 const simplifiedFolderResponse = (folderResponse: SFMC_SOAP_Folder[]) => {
+
     return (
         (folderResponse &&
             folderResponse.map((folder: SFMC_SOAP_Folder) => {
