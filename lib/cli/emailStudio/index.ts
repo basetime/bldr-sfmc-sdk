@@ -241,7 +241,7 @@ export class EmailStudio {
                     categoryId,
                 });
 
-            const folderResponse = [...parentFolders, ...dataExtensionFolderObject.Results]
+            const folderResponse = [...parentFolders.results, ...dataExtensionFolderObject.Results]
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
             const formattedFolders = buildFolderPaths.folders.map((folder) => {
