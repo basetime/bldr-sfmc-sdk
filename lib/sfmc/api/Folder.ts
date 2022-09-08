@@ -185,7 +185,6 @@ export class Folder {
         stopFolderId = rootFolderRequest.Results[0].ParentFolder.ID;
 
         if(rootFolderRequest.Results[0].ID === request.categoryId){
-            console.log('return matched root')
             return {
                 results,
                 stop: true
