@@ -20,6 +20,11 @@ const getContentBuilderAssetContent = (asset: {
         case 'codesnippetblock':
         case 'htmlblock':
         case 'jscoderesource':
+        case 'jsoncoderesource':
+        case 'csscoderesource':
+        case 'textcoderesource':
+        case 'rsscoderesource':
+        case 'xmlcoderesource':
             content = asset.content
             break;
         default:

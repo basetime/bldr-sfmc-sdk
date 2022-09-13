@@ -132,7 +132,7 @@ export class ContentBuilderAsset {
                 ],
             });
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
 

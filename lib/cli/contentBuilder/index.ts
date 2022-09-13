@@ -372,7 +372,6 @@ export class ContentBuilder {
     setContentBuilderDependenciesFromPackage = async (packageOut: any) => {
         try {
             const newDependencies: { [key: string]: any } = {}
-
             for (const a in packageOut['contentBuilder']['assets']) {
                 let asset = packageOut['contentBuilder']['assets'][a];
                 let content = await getContentBuilderAssetContent(asset);
@@ -380,13 +379,14 @@ export class ContentBuilder {
 
                 for (const p in contentBuilderPackageReference) {
                     const reference = contentBuilderPackageReference[p];
-                    const regex = `(${reference}\\(['"](?<value>.+)['"])`;
-                    const ampscriptRegex = new RegExp(regex, 'g');
-                    const matches = content && content.matchAll(ampscriptRegex);
+                    let regex = `${reference}\\(['"](?<value>.+)['"]\\)`;
+                    let ampscriptRegex = new RegExp(regex, 'g');
+                    let matches = content && content.matchAll(ampscriptRegex);
 
                     for (const match of matches) {
                         const groups = Object.assign(match.groups, {});
                         let matchedValue = groups.value;
+
                         matchedValue = matchedValue.replace(/['"]/gm, '');
 
                         let dependency = await getAssetDependency(
@@ -405,9 +405,9 @@ export class ContentBuilder {
                         }
 
                         if (dependency && dependency.exists) {
-                            asset.content = await setUpdatedPackageAssetContent(dependencyReference, matchedValue, asset.content);
+                            asset.content = await setUpdatedPackageAssetContent(dependencyReference, matchedValue, content);
                             asset.dependencies.push(dependencyReference)
-
+                            content = asset.content;
 
                             // remove matched value from dependency object
                             delete dependency.matchedValue;
@@ -420,7 +420,9 @@ export class ContentBuilder {
                                 reference
                             })
 
-                            asset.content = await setUpdatedPackageAssetContent(dependencyReference, matchedValue, asset.content);
+                            asset.content = await setUpdatedPackageAssetContent(dependencyReference, matchedValue, content);
+                            content = asset.content;
+
                             newDependencies[dependencyContext] = newDependencies[dependencyContext] || {
                                 assets: []
                             }
@@ -431,7 +433,6 @@ export class ContentBuilder {
                             newDependencies[dependencyContext]['assets'].push(dependency.payload);
                             packageOut[dependencyContext]['assets'].push(dependency.payload);
                         }
-
                     }
                 }
             }
@@ -441,6 +442,7 @@ export class ContentBuilder {
                 packageOut
             }
         } catch (err: any) {
+            console.log(err)
             console.log('Some dependencies in package do not exist')
         }
 

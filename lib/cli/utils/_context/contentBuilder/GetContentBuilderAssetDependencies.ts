@@ -89,7 +89,6 @@ const getAssetDependency = async (
             // Do not capture existing Content Builder assets if they already exist in package
             assetExists = packageOut.contentBuilder?.assets.find((asset: { id: number }) => Number(asset.id) === Number(matchedValue));
 
-
             // Do not capture existing Content Builder assets if they already exist in package
             if (assetExists) {
                 assetExists.exists = true;
@@ -118,12 +117,16 @@ const getAssetDependency = async (
                 return assetExists
             } else {
 
-                resp.payload = await client.asset.getAssetByNameAndFolder(
-                    contentBlockName,
-                    contentBlockFolder
+                const dependencyRequest = await client.asset.getAssetByNameAndFolder(
+                    {
+                        assetName: contentBlockName,
+                        assetFolderName: contentBlockFolder
+                    }
                 )
 
+                resp.payload = dependencyRequest
             }
+
             bldrId = await guid()
             resp.payload.bldrId = bldrId;
             resp.bldrId = bldrId;
@@ -168,12 +171,12 @@ const setUpdatedPackageAssetContent = (
         case 'ClaimRow':
             assetContent = assetContent.replaceAll(matchedValue, bldrId)
             break;
-         case 'ContentBlockById':
+        case 'ContentBlockById':
         case 'ContentBlockByID':
         case 'ContentBlockbyID':
             assetContent = assetContent.replaceAll(matchedValue, bldrId)
             break;
-         case 'ContentBlockByName':
+        case 'ContentBlockByName':
             assetContent = assetContent.replaceAll(matchedValue, bldrId)
 
             break;
