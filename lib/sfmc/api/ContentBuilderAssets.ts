@@ -246,7 +246,29 @@ export class ContentBuilderAsset {
             return err;
         }
     }
+    /**
+     *
+     * @param assetId
+     */
+    async deleteAsset(assetId: number) {
+        try {
+            if (!assetId) {
+                throw new Error('Asset Id is required');
+            }
 
+            console.log(assetId)
+
+            const apiRequest = await this.client.rest.delete(
+                `/asset/v1/content/assets/${assetId}`
+            );
+
+            console.log('apiRequest', apiRequest)
+            return apiRequest
+        } catch (err) {
+            console.log('(e)', err)
+            return err;
+        }
+    }
     /**
      * Get Image data from Image assetId
      * Will also grab the base64 file data and add it to the fileProperties object

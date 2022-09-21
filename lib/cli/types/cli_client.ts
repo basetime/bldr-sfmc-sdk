@@ -14,7 +14,9 @@ export interface CLI_Client {
         gatherAssetsByCategoryId: Function;
         gatherAssetById: Function;
         searchActivity: Function;
-        gatherAutomationDefinitionsByCategoryId: Function
+        gatherAutomationDefinitionsByCategoryId: Function,
+        gatherAutomationDefinitionsById: Function
+
     };
     emailStudio: {
         searchFolders: Function;

@@ -227,7 +227,7 @@ export class ContentBuilder {
             })
 
             return {
-                folders: formattedFolders,
+                folders: formattedFolders || [],
                 assets: formattedAssetResponse || []
             }
 

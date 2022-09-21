@@ -44,6 +44,7 @@ export class SFMC implements SFMC_Client {
         searchAssets: Function;
         postAsset: Function;
         putAsset: Function;
+        deleteAsset: Function;
         getImageData: Function;
     };
     automation: {
@@ -55,7 +56,7 @@ export class SFMC implements SFMC_Client {
         getAutomationActivities: Function;
         patchAutomationAsset: Function;
         searchActivity: Function;
-        searchActivityByCategoryId: Function
+        searchActivityByCategoryId: Function;
     };
     emailStudio: {
         searchEmailSendDefinition: Function;

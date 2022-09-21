@@ -23,6 +23,7 @@ export interface SFMC_Client {
         searchAssets: Function;
         postAsset: Function;
         putAsset: Function;
+        deleteAsset: Function;
         getImageData: Function;
     };
     automation: {
