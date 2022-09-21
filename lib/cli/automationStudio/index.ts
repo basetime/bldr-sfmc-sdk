@@ -461,10 +461,14 @@ export class AutomationStudio {
         }
     }
 
-    gatherAutomationDefinitionsByCategoryId = async (request: {
-        contentType: string,
-        categoryId: number
-    }) => {
+    gatherAutomationDefinitionsByCategoryId = async (
+        request: {
+            contentType: string,
+            categoryId: number
+        },
+        removeRoot = false
+    ) => {
+
         const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
             request
         );
@@ -475,11 +479,26 @@ export class AutomationStudio {
         const rootFolder = rootFolderObj && rootFolderObj.name
         const definitionApi = rootFolderObj && rootFolderObj.api
 
+        const rootFolderResponse = await this.sfmc.folder.search({
+            contentType: request.contentType,
+            searchKey: 'Name',
+            searchTerm: rootFolder,
+        })
+
+        const rootFolderID = rootFolderResponse.OverallStatus === 'OK'
+            && rootFolderResponse.Results
+            && rootFolderResponse.Results[0]
+            && rootFolderResponse.Results[0].ID
+            || null
+
 
         const isolateFolderIds: any[] =
-            buildFolderPaths.folders
-                .map((folder: SFMC_SOAP_Folder) => folder.ID)
-
+            rootFolderID && rootFolderID !== request.categoryId
+            ? buildFolderPaths.folders
+                .map((folder: SFMC_SOAP_Folder) => rootFolderID !== folder.ID && folder.ID)
+                .filter(Boolean)
+            : buildFolderPaths.folders
+            .map((folder: SFMC_SOAP_Folder) => folder.ID)
 
         const definitionReturn: any[] = [];
         for (const i in isolateFolderIds) {
@@ -490,7 +509,6 @@ export class AutomationStudio {
 
             definitionReturn.push(...definitionRequest.items)
         }
-
 
         return {
             assets: definitionReturn || [],
