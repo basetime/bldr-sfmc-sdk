@@ -70,12 +70,7 @@ export class SFMC implements SFMC_Client {
     }
     constructor(AuthObject: AuthObject) {
         this.client = new SDK(
-            {
-                client_id: AuthObject.client_id,
-                client_secret: AuthObject.client_secret,
-                auth_url: AuthObject.auth_url,
-                account_id: AuthObject.account_id,
-            },
+            AuthObject,
             {
                 eventHandlers: {
                     // onLoop: (type, accumulator) => console.log('Looping', type, accumlator.length),

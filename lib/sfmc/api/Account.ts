@@ -9,6 +9,10 @@ export class Account {
     constructor(client: Client) {
         this.client = client;
     }
+    async getAccessTokenResponse(){
+        const tokenResponse = await this.client.auth.getAccessToken();
+        return tokenResponse
+    }
     /**
      * Retrieve SFMC Account details for an instance
      * @returns
