@@ -13,6 +13,7 @@ export class Folder {
         this.client = client;
         this.sfmc_context = sfmc_context_mapping;
     }
+
     /**
      * Search SFMC Folders using SOAP DataFolder Object
      *
@@ -23,8 +24,8 @@ export class Folder {
      */
     async search(request: {
         contentType: string;
-        searchKey: string;
-        searchTerm: string;
+        searchKey?: string;
+        searchTerm?: string;
         parentId?: number;
     }): Promise<{
         OverallStatus: string;
@@ -33,7 +34,7 @@ export class Folder {
         try {
             let filter;
             if (request.parentId) {
-                const complexFilterPart = {
+                filter = {
                     leftOperand: {
                         leftOperand: 'ContentType',
                         operator: 'equals',
@@ -47,15 +48,15 @@ export class Folder {
                     }
                 }
 
-                filter = {
-                    leftOperand: {
-                        leftOperand: 'ContentType',
-                        operator: 'equals',
-                        rightOperand: request.contentType,
-                    },
-                    operator: 'AND',
-                    rightOperand: complexFilterPart
-                }
+                // filter = {
+                //     leftOperand: {
+                //         leftOperand: 'ContentType',
+                //         operator: 'equals',
+                //         rightOperand: request.contentType,
+                //     },
+                //     operator: 'AND',
+                //     rightOperand: complexFilterPart
+                // }
 
             } else {
                 filter = {
@@ -87,7 +88,7 @@ export class Folder {
 
             return resp;
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
     /**

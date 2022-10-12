@@ -300,7 +300,6 @@ export class ContentBuilderAsset {
 
             return apiRequest;
         } catch (err) {
-            console.log('in fn', err)
             return err;
         }
     }

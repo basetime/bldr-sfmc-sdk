@@ -124,10 +124,22 @@ export class ContentBuilder {
                         modifiedDate: string;
                         category: {
                             name: string;
-                            parentId: string;
+                            parentId: number;
                         };
+                        sharingProperties?: any
                     }) => {
-                        return {
+                        let assetOutput: {
+                            sharingProperties?: any;
+                            ID: number;
+                            Name: string;
+                            AssetType: string;
+                            CreatedDate: string;
+                            ModifiedDate: string;
+                            Category: {
+                                Name: string;
+                                ParentId: number;
+                            }
+                        } = {
                             ID: asset.id,
                             Name: asset.name,
                             AssetType: asset.assetType.name,
@@ -138,6 +150,12 @@ export class ContentBuilder {
                                 ParentId: asset.category.parentId,
                             },
                         };
+
+                        if(Object.prototype.hasOwnProperty.call(asset, 'sharingProperties')){
+                            assetOutput.sharingProperties = asset.sharingProperties
+                        }
+
+                        return assetOutput
                     }
                 )) ||
             [];
