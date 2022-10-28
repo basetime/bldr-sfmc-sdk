@@ -63,7 +63,6 @@ export class ContentBuilderAsset {
                 throw new Error('folderIdArray argument must be an array');
             }
 
-
             return this.client.rest.post('/asset/v1/content/assets/query', {
                 page: {
                     page: 1,
@@ -256,16 +255,16 @@ export class ContentBuilderAsset {
                 throw new Error('Asset Id is required');
             }
 
-            console.log(assetId)
+            console.log(assetId);
 
             const apiRequest = await this.client.rest.delete(
                 `/asset/v1/content/assets/${assetId}`
             );
 
-            console.log('apiRequest', apiRequest)
-            return apiRequest
+            console.log('apiRequest', apiRequest);
+            return apiRequest;
         } catch (err) {
-            console.log('(e)', err)
+            console.log('(e)', err);
             return err;
         }
     }
@@ -303,6 +302,4 @@ export class ContentBuilderAsset {
             return err;
         }
     }
-
-
 }

@@ -2,9 +2,12 @@ import { SFMC_Client } from '../types/sfmc_client';
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
-import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent'
-import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference'
-import { getAssetDependency, setUpdatedPackageAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies'
+import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
+import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
+import {
+    getAssetDependency,
+    setUpdatedPackageAssetContent,
+} from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 
 export class EmailStudio {
     sfmc: SFMC_Client;
@@ -112,7 +115,9 @@ export class EmailStudio {
         searchKey: string;
         searchTerm: string;
     }) => {
-        const response = await this.sfmc.emailStudio.searchDataExtensionByName(request);
+        const response = await this.sfmc.emailStudio.searchDataExtensionByName(
+            request
+        );
         if (response.OverallStatus !== 'OK') {
             return response.OverallStatus;
         }
@@ -132,7 +137,7 @@ export class EmailStudio {
                             Name: dataExtension.Name,
                             CreatedDate: dataExtension.CreatedDate,
                             ModifiedDate: dataExtension.ModifiedDate,
-                            CategoryID: dataExtension.CategoryID
+                            CategoryID: dataExtension.CategoryID,
                         };
                     }
                 )) ||
@@ -175,45 +180,63 @@ export class EmailStudio {
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
-            const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+
+            const buildFolderPaths =
+                folderResponse && (await buildFolderPathsSoap(folderResponse));
             const isolateFolderIds =
-                buildFolderPaths &&
-                buildFolderPaths.folders
-                    .map(
-                        (folder: SFMC_SOAP_Folder) =>
-                            folder.Name !== 'Data Extensions' && folder.ID
-                    )
-                    .filter(Boolean);
+                (buildFolderPaths &&
+                    buildFolderPaths.folders &&
+                    buildFolderPaths.folders.length &&
+                    buildFolderPaths.folders
+                        .map(
+                            (folder: SFMC_SOAP_Folder) =>
+                                folder.Name !== 'Data Extensions' && folder.ID
+                        )
+                        .filter(Boolean)) ||
+                [];
 
-
-            const assetResponse = await this.sfmc.emailStudio.getAssetsByFolderArray(
-                isolateFolderIds
-            );
+            const assetResponse =
+                isolateFolderIds &&
+                isolateFolderIds.length &&
+                (await this.sfmc.emailStudio.getAssetsByFolderArray(
+                    isolateFolderIds
+                ));
 
             const formattedAssetResponse: any[] = [];
+            const dataExtensions =
+                (assetResponse && assetResponse.Results) || [];
 
-            const dataExtensions = assetResponse && assetResponse.Results;
-            for (const a in dataExtensions) {
-                const dataExtension: { Name: string } = dataExtensions[a]
-                const dataExtensionPayload = await this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(dataExtension.Name)
-                formattedAssetResponse.push(dataExtensionPayload)
+            if (dataExtensions && dataExtensions.length) {
+                for (const a in dataExtensions) {
+                    const dataExtension: { Name: string } = dataExtensions[a];
+                    const dataExtensionPayload =
+                        dataExtension &&
+                        (await this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(
+                            dataExtension.Name
+                        ));
+                    formattedAssetResponse.push(dataExtensionPayload);
+                }
             }
 
-            const formattedFolders = buildFolderPaths.folders.map((folder) => {
-                return {
-                    id: folder.ID,
-                    name: folder.Name,
-                    parentId: folder.ParentFolder.ID,
-                    folderPath: folder.FolderPath
-                }
-            })
+            const formattedFolders =
+                (buildFolderPaths.folders &&
+                    buildFolderPaths.folders.length &&
+                    buildFolderPaths.folders.map((folder: SFMC_SOAP_Folder) => {
+                        return {
+                            id: folder.ID,
+                            name: folder.Name,
+                            parentId: folder.ParentFolder.ID,
+                            folderPath: folder.FolderPath,
+                        };
+                    })) ||
+                [];
 
             return {
-                folders: formattedFolders,
-                assets: formattedAssetResponse || []
-            }
+                folders: formattedFolders || [],
+                assets: formattedAssetResponse || [],
+            };
         } catch (err: any) {
-            return err.message;
+            return err;
         }
     };
     /**
@@ -227,13 +250,16 @@ export class EmailStudio {
             }
 
             // Accounts for LegacyIds and Content Builder AssetIds
-            let dataExtensionPayload = await this.sfmc.emailStudio.retrieveDataExtensionPayloadByCustomerKey(customerKey)
+            let dataExtensionPayload =
+                await this.sfmc.emailStudio.retrieveDataExtensionPayloadByCustomerKey(
+                    customerKey
+                );
             const categoryId = dataExtensionPayload.category.categoryId;
 
             const dataExtensionFolderObject = await this.sfmc.folder.getFolder({
                 contentType: 'dataextension',
-                categoryId
-            })
+                categoryId,
+            });
 
             let parentFolders =
                 await this.sfmc.folder.getParentFoldersRecursive({
@@ -241,7 +267,10 @@ export class EmailStudio {
                     categoryId,
                 });
 
-            const folderResponse = [...parentFolders.results, ...dataExtensionFolderObject.Results]
+            const folderResponse = [
+                ...parentFolders.results,
+                ...dataExtensionFolderObject.Results,
+            ];
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
             const formattedFolders = buildFolderPaths.folders.map((folder) => {
@@ -249,17 +278,16 @@ export class EmailStudio {
                     id: folder.ID,
                     name: folder.Name,
                     parentId: folder.ParentFolder.ID,
-                    folderPath: folder.FolderPath
-                }
-            })
+                    folderPath: folder.FolderPath,
+                };
+            });
 
             return {
                 folders: formattedFolders,
-                assets: [dataExtensionPayload] || []
-            }
+                assets: [dataExtensionPayload] || [],
+            };
         } catch (err: any) {
             return err.message;
         }
     };
-
 }

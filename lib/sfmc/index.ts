@@ -67,37 +67,34 @@ export class SFMC implements SFMC_Client {
         retrieveDataExtensionPayloadByCustomerKey: Function;
         getDataExtensionFields: Function;
         postAsset: Function;
-    }
+    };
     constructor(AuthObject: AuthObject) {
-        this.client = new SDK(
-            AuthObject,
-            {
-                eventHandlers: {
-                    // onLoop: (type, accumulator) => console.log('Looping', type, accumlator.length),
-                    // onRefresh: (options) => console.log('RefreshingToken.', Options),
-                    logRequest: (req: any) =>
-                        process.env.NODE_ENV === 'development'
-                            ? console.log(req)
-                            : null,
-                    logResponse: (res: any) =>
-                        process.env.NODE_ENV === 'development'
-                            ? console.log(res)
-                            : null,
-                    onConnectionError: (ex: any, remainingAttempts: number) =>
-                        process.env.NODE_ENV === 'development'
-                            ? console.log(ex.code, remainingAttempts)
-                            : null,
-                },
-                requestAttempts: 1,
-                retryOnConnectionError: true,
-            }
-        );
+        this.client = new SDK(AuthObject, {
+            eventHandlers: {
+                // onLoop: (type, accumulator) => console.log('Looping', type, accumlator.length),
+                // onRefresh: (options) => console.log('RefreshingToken.', Options),
+                logRequest: (req: any) =>
+                    process.env.NODE_ENV === 'development'
+                        ? console.log(req)
+                        : null,
+                logResponse: (res: any) =>
+                    process.env.NODE_ENV === 'development'
+                        ? console.log(res)
+                        : null,
+                onConnectionError: (ex: any, remainingAttempts: number) =>
+                    process.env.NODE_ENV === 'development'
+                        ? console.log(ex.code, remainingAttempts)
+                        : null,
+            },
+            requestAttempts: 1,
+            retryOnConnectionError: true,
+        });
 
         this.folder = new Folder(this.client, sfmc_context_mapping);
         this.asset = new ContentBuilderAsset(this.client);
         this.account = new Account(this.client);
         this.automation = new Automation(this.client);
-        this.emailStudio = new EmailStudio(this.client, this.folder)
+        this.emailStudio = new EmailStudio(this.client, this.folder);
         // this.describe = new Describe(this.client.soap);
         // this.dataExtension = new DataExtension(this.client.soap);
         // this.query = new QueryDefinition(this.client.rest, this.client.soap);

@@ -272,9 +272,9 @@ export class AutomationStudio {
                     categoryId,
                 });
 
-
             const simplifiedFolderResponse =
-                (folderResponse.results && Array.isArray(folderResponse.results) &&
+                (folderResponse.results &&
+                    Array.isArray(folderResponse.results) &&
                     folderResponse.results.map((folder: SFMC_SOAP_Folder) => {
                         return {
                             ID: folder.ID,
@@ -289,7 +289,6 @@ export class AutomationStudio {
                         };
                     })) ||
                 [];
-
 
             const buildFolderPaths = await buildFolderPathsSoap(
                 simplifiedFolderResponse
@@ -404,7 +403,6 @@ export class AutomationStudio {
         return formattedAutomationDependencies || {};
     };
 
-
     /**
      * Method to search Automation Studio Activity Endpoint
      *
@@ -413,7 +411,7 @@ export class AutomationStudio {
      */
     searchActivity = async (searchActivity: string, searchTerm: string) => {
         try {
-            let activity: string = ''
+            let activity: string = '';
             switch (searchActivity) {
                 case 'ssjs':
                     activity = 'scripts';
@@ -428,119 +426,129 @@ export class AutomationStudio {
                 searchTerm
             );
 
-
             if (
                 Object.prototype.hasOwnProperty.call(resp, 'items') &&
                 resp.items.length === 0
             ) {
-                throw new Error(
-                    `No Search Items Returned for ${searchTerm}`
-                );
+                throw new Error(`No Search Items Returned for ${searchTerm}`);
             }
 
-            return resp.items.map((result: any) => {
-                let objectKey: string = '';
-                switch (searchActivity) {
-                    case 'ssjs':
-                        objectKey = 'ssjsActivityId';
-                        break;
-                    case 'sql':
-                        objectKey = 'queryDefinitionId';
-                        break;
-                }
+            return (
+                resp.items.map((result: any) => {
+                    let objectKey: string = '';
+                    switch (searchActivity) {
+                        case 'ssjs':
+                            objectKey = 'ssjsActivityId';
+                            break;
+                        case 'sql':
+                            objectKey = 'queryDefinitionId';
+                            break;
+                    }
 
-                return {
-                    Name: result.name,
-                    [objectKey]: result[objectKey],
-                    CategoryID: result.categoryId,
-                    ModifiedDate: result.modifiedDate
-                }
-            }) || [];
+                    return {
+                        Name: result.name,
+                        [objectKey]: result[objectKey],
+                        CategoryID: result.categoryId,
+                        ModifiedDate: result.modifiedDate,
+                    };
+                }) || []
+            );
         } catch (err: any) {
-            return err
+            return err;
         }
-    }
+    };
 
     gatherAutomationDefinitionsByCategoryId = async (
         request: {
-            contentType: string,
-            categoryId: number
+            contentType: string;
+            categoryId: number;
         },
         removeRoot = false
     ) => {
-
         const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
             request
         );
 
         const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
-        const rootFolderObj = sfmc_context_mapping.find((ctxFolder => ctxFolder.contentType === request.contentType))
-        const rootFolder = rootFolderObj && rootFolderObj.name
-        const definitionApi = rootFolderObj && rootFolderObj.api
+        const rootFolderObj = sfmc_context_mapping.find(
+            (ctxFolder) => ctxFolder.contentType === request.contentType
+        );
+        const rootFolder = rootFolderObj && rootFolderObj.name;
+        const definitionApi = rootFolderObj && rootFolderObj.api;
 
         const rootFolderResponse = await this.sfmc.folder.search({
             contentType: request.contentType,
             searchKey: 'Name',
             searchTerm: rootFolder,
-        })
+        });
 
-        const rootFolderID = rootFolderResponse.OverallStatus === 'OK'
-            && rootFolderResponse.Results
-            && rootFolderResponse.Results[0]
-            && rootFolderResponse.Results[0].ID
-            || null
-
+        const rootFolderID =
+            (rootFolderResponse.OverallStatus === 'OK' &&
+                rootFolderResponse.Results &&
+                rootFolderResponse.Results[0] &&
+                rootFolderResponse.Results[0].ID) ||
+            null;
 
         const isolateFolderIds: any[] =
             rootFolderID && rootFolderID !== request.categoryId
-            ? buildFolderPaths.folders
-                .map((folder: SFMC_SOAP_Folder) => rootFolderID !== folder.ID && folder.ID)
-                .filter(Boolean)
-            : buildFolderPaths.folders
-            .map((folder: SFMC_SOAP_Folder) => folder.ID)
+                ? buildFolderPaths.folders
+                      .map(
+                          (folder: SFMC_SOAP_Folder) =>
+                              rootFolderID !== folder.ID && folder.ID
+                      )
+                      .filter(Boolean)
+                : buildFolderPaths.folders.map(
+                      (folder: SFMC_SOAP_Folder) => folder.ID
+                  );
 
         const definitionReturn: any[] = [];
         for (const i in isolateFolderIds) {
-            const definitionRequest = await this.sfmc.automation.searchActivityByCategoryId({
-                searchActivity: definitionApi,
-                categoryId: isolateFolderIds[i]
-            })
+            const definitionRequest =
+                await this.sfmc.automation.searchActivityByCategoryId({
+                    searchActivity: definitionApi,
+                    categoryId: isolateFolderIds[i],
+                });
 
-            definitionReturn.push(...definitionRequest.items)
+            definitionReturn.push(...definitionRequest.items);
         }
 
         return {
             assets: definitionReturn || [],
-            folders: buildFolderPaths.folders
-        }
-    }
+            folders: buildFolderPaths.folders,
+        };
+    };
 
     gatherAutomationDefinitionsById = async (request: {
-        contentType: string,
-        assetId: number
+        contentType: string;
+        assetId: number;
     }) => {
-        const rootFolderObj = sfmc_context_mapping.find((ctxFolder => ctxFolder.contentType === request.contentType))
-        const rootFolder = rootFolderObj && rootFolderObj.name
-        const definitionApi = rootFolderObj && rootFolderObj.api
-
-
-        const definitionRequest = await this.sfmc.automation.getAutomationActivity({
-            activityType: definitionApi,
-            activityObjectId: request.assetId
-        })
-
-        const folderResponse = definitionRequest && await this.sfmc.folder.getFoldersFromMiddle({
-                contentType: request.contentType,
-                categoryId: definitionRequest.categoryId
-            }
+        const rootFolderObj = sfmc_context_mapping.find(
+            (ctxFolder) => ctxFolder.contentType === request.contentType
         );
+        const rootFolder = rootFolderObj && rootFolderObj.name;
+        const definitionApi = rootFolderObj && rootFolderObj.api;
+
+        const definitionRequest =
+            await this.sfmc.automation.getAutomationActivity({
+                activityType: definitionApi,
+                activityObjectId: request.assetId,
+            });
+
+        const folderResponse =
+            definitionRequest &&
+            (await this.sfmc.folder.getFoldersFromMiddle({
+                contentType: request.contentType,
+                categoryId: definitionRequest.categoryId,
+            }));
 
         const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
         return {
-            assets: Array.isArray(definitionRequest) ? definitionRequest : new Array(definitionRequest) || [],
-            folders: buildFolderPaths.folders
-        }
-    }
+            assets: Array.isArray(definitionRequest)
+                ? definitionRequest
+                : new Array(definitionRequest) || [],
+            folders: buildFolderPaths.folders,
+        };
+    };
 }

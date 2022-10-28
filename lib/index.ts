@@ -1,8 +1,8 @@
 import { SFMC } from './sfmc/index';
 import { CLI } from './cli/index';
 import { AuthObject } from './sfmc/types/sfmc_auth_object';
-import {CLI_Client} from './cli/types/cli_client'
-import {SFMC_Client} from './cli/types/sfmc_client'
+import { CLI_Client } from './cli/types/cli_client';
+import { SFMC_Client } from './cli/types/sfmc_client';
 /*
  * Creates an instance of BLDR SDK.
  *

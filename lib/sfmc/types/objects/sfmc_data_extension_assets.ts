@@ -2,21 +2,20 @@ export interface SFMC_Data_Extension_Asset {
     name: string;
     bldrId: string;
     customerKey: string;
-    description:string;
-    fields:
-      {
+    description: string;
+    fields: {
         partnerKey: string;
         name: string;
         defaultValue: string;
-        isRequired: Boolean,
-        ordinal: number,
-        isPrimaryKey: Boolean,
+        isRequired: Boolean;
+        ordinal: number;
+        isPrimaryKey: Boolean;
         fieldType: string;
-      }[];
+    }[];
     category: {
-      folderPath: string;
-    }
-  }
+        folderPath: string;
+    };
+}
 
 export interface FieldTypes {
     scale?: number;
@@ -29,4 +28,3 @@ export interface FieldTypes {
     isPrimaryKey: Boolean;
     fieldType: string;
 }
-

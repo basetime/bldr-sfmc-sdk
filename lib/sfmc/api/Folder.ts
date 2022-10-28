@@ -45,8 +45,8 @@ export class Folder {
                         leftOperand: 'ParentFolder.ID',
                         operator: 'equals',
                         rightOperand: request.parentId,
-                    }
-                }
+                    },
+                };
 
                 // filter = {
                 //     leftOperand: {
@@ -57,7 +57,6 @@ export class Folder {
                 //     operator: 'AND',
                 //     rightOperand: complexFilterPart
                 // }
-
             } else {
                 filter = {
                     leftOperand: {
@@ -70,8 +69,8 @@ export class Folder {
                         leftOperand: request.searchKey,
                         operator: 'like',
                         rightOperand: request.searchTerm,
-                    }
-                }
+                    },
+                };
             }
 
             const resp = await this.client.soap.retrieveBulk(
@@ -192,7 +191,7 @@ export class Folder {
     async getParentFoldersRecursive(request: {
         contentType: string;
         categoryId: number;
-    }): Promise<{ results: any[], stop: Boolean }> {
+    }): Promise<{ results: any[]; stop: Boolean }> {
         let parentId;
         let stopFolderId;
         let results: object[] = [];
@@ -219,8 +218,8 @@ export class Folder {
                 if (rootFolderRequest.Results[0].ID === request.categoryId) {
                     return {
                         results,
-                        stop: true
-                    }
+                        stop: true,
+                    };
                 }
             }
         }
@@ -271,15 +270,15 @@ export class Folder {
 
                     results.push(...parentRequest.Results);
                     parentId =
-                        (parentResult &&
-                            parentResult.ParentFolder &&
-                            parentResult.ParentFolder.ID)
+                        parentResult &&
+                        parentResult.ParentFolder &&
+                        parentResult.ParentFolder.ID;
                 }
             } while (parentId !== 0);
         }
         return {
             results,
-            stop: false
+            stop: false,
         };
     }
     /**
@@ -358,8 +357,9 @@ export class Folder {
         contentType: string;
         categoryId: number;
     }) {
-        let up = await this.getParentFoldersRecursive(request) || [];
-        let down = !up.stop && await this.getSubfoldersRecursive(request) || [];
+        let up = (await this.getParentFoldersRecursive(request)) || [];
+        let down =
+            (!up.stop && (await this.getSubfoldersRecursive(request))) || [];
 
         return [
             ...new Map(

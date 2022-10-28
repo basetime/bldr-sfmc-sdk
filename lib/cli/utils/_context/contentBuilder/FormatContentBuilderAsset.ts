@@ -30,7 +30,9 @@ const setAssetPostObject = (
 
     // Find Compiled Folder Path from Folders Array
     const findAssetsFolderObject = folders.find(
-        ( folder ) => folder.ID === asset.category.id || folder.ParentFolder.ID === asset.category.id
+        (folder) =>
+            folder.ID === asset.category.id ||
+            folder.ParentFolder.ID === asset.category.id
     );
 
     // Set Assets folderPath or initiate as blank

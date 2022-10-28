@@ -2,9 +2,12 @@ import { SFMC_Client } from '../types/sfmc_client';
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
-import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent'
-import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference'
-import { getAssetDependency, setUpdatedPackageAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies'
+import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
+import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
+import {
+    getAssetDependency,
+    setUpdatedPackageAssetContent,
+} from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 
 export class ContentBuilder {
     sfmc: SFMC_Client;
@@ -127,7 +130,7 @@ export class ContentBuilder {
                                 name: string;
                                 parentId: number;
                             };
-                            sharingProperties?: any
+                            sharingProperties?: any;
                         }) => {
                             let assetOutput: {
                                 sharingProperties?: any;
@@ -139,7 +142,7 @@ export class ContentBuilder {
                                 Category: {
                                     Name: string;
                                     ParentId: number;
-                                }
+                                };
                             } = {
                                 ID: asset.id,
                                 Name: asset.name,
@@ -152,18 +155,24 @@ export class ContentBuilder {
                                 },
                             };
 
-                            if (Object.prototype.hasOwnProperty.call(asset, 'sharingProperties')) {
-                                assetOutput.sharingProperties = asset.sharingProperties
+                            if (
+                                Object.prototype.hasOwnProperty.call(
+                                    asset,
+                                    'sharingProperties'
+                                )
+                            ) {
+                                assetOutput.sharingProperties =
+                                    asset.sharingProperties;
                             }
 
-                            return assetOutput
+                            return assetOutput;
                         }
                     )) ||
                 [];
 
             return formattedResponse;
         } catch (err) {
-            return err
+            return err;
         }
     };
     /**
@@ -199,10 +208,10 @@ export class ContentBuilder {
     }) => {
         try {
             if (!request.contentType) {
-                throw new Error('contentType required')
+                throw new Error('contentType required');
             }
             if (!request.categoryId) {
-                throw new Error('categoryId required')
+                throw new Error('categoryId required');
             }
 
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
@@ -223,7 +232,6 @@ export class ContentBuilder {
                 isolateFolderIds
             );
 
-
             if (
                 assetResponse &&
                 assetResponse.response &&
@@ -233,34 +241,37 @@ export class ContentBuilder {
                 throw new Error(assetResponse);
             }
 
-
             const formattedAssetResponse =
-                assetResponse &&
-                assetResponse.items &&
-                assetResponse.items.length &&
-                buildFolderPaths &&
-                buildFolderPaths.folders
-                && await formatContentBuilderAssets(
-                    assetResponse.items,
-                    buildFolderPaths.folders
-                ) || [];
+                (assetResponse &&
+                    assetResponse.items &&
+                    assetResponse.items.length &&
+                    buildFolderPaths &&
+                    buildFolderPaths.folders &&
+                    (await formatContentBuilderAssets(
+                        assetResponse.items,
+                        buildFolderPaths.folders
+                    ))) ||
+                [];
 
-            const formattedFolders = buildFolderPaths.folders && buildFolderPaths.folders.length && buildFolderPaths.folders.map((folder) => {
-                return {
-                    id: folder.ID,
-                    name: folder.Name,
-                    parentId: folder.ParentFolder.ID,
-                    folderPath: folder.FolderPath
-                }
-            }) || []
+            const formattedFolders =
+                (buildFolderPaths.folders &&
+                    buildFolderPaths.folders.length &&
+                    buildFolderPaths.folders.map((folder) => {
+                        return {
+                            id: folder.ID,
+                            name: folder.Name,
+                            parentId: folder.ParentFolder.ID,
+                            folderPath: folder.FolderPath,
+                        };
+                    })) ||
+                [];
 
             return {
                 folders: formattedFolders || [],
-                assets: formattedAssetResponse || []
-            }
-
+                assets: formattedAssetResponse || [],
+            };
         } catch (err: any) {
-            return err
+            return err;
         }
     };
     /**
@@ -286,7 +297,6 @@ export class ContentBuilder {
                     assetResponse.items[0]) ||
                 assetResponse;
 
-
             if (
                 assetResponse &&
                 assetResponse.response &&
@@ -301,7 +311,6 @@ export class ContentBuilder {
                 assetResponse.category &&
                 assetResponse.category.id;
 
-
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
                 contentType: 'asset',
                 categoryId,
@@ -310,32 +319,34 @@ export class ContentBuilder {
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
             const formattedAssetResponse =
-                assetResponse
-                && assetResponse.items
-                && assetResponse.items.length
-                && buildFolderPaths
-                && buildFolderPaths.folders
-                && await formatContentBuilderAssets(
-                    assetResponse,
-                    buildFolderPaths.folders
-                )
-                || [];
+                (assetResponse &&
+                    assetResponse.items &&
+                    assetResponse.items.length &&
+                    buildFolderPaths &&
+                    buildFolderPaths.folders &&
+                    (await formatContentBuilderAssets(
+                        assetResponse,
+                        buildFolderPaths.folders
+                    ))) ||
+                [];
 
-
-            const formattedFolders = buildFolderPaths.folders && buildFolderPaths.folders.length && buildFolderPaths.folders.map((folder) => {
-                return {
-                    id: folder.ID,
-                    name: folder.Name,
-                    parentId: folder.ParentFolder.ID,
-                    folderPath: folder.FolderPath
-                }
-            }) || []
-
+            const formattedFolders =
+                (buildFolderPaths.folders &&
+                    buildFolderPaths.folders.length &&
+                    buildFolderPaths.folders.map((folder) => {
+                        return {
+                            id: folder.ID,
+                            name: folder.Name,
+                            parentId: folder.ParentFolder.ID,
+                            folderPath: folder.FolderPath,
+                        };
+                    })) ||
+                [];
 
             return {
                 folders: formattedFolders || [],
-                assets: formattedAssetResponse || []
-            }
+                assets: formattedAssetResponse || [],
+            };
         } catch (err: any) {
             return err;
         }
@@ -369,13 +380,12 @@ export class ContentBuilder {
         return asset;
     };
 
-
     setContentBuilderPackageAssets = async (
         packageOut: any,
         contextAssets: any[]
     ) => {
         packageOut['contentBuilder'] = {};
-        return packageOut['contentBuilder']['assets'] = contextAssets.map(
+        return (packageOut['contentBuilder']['assets'] = contextAssets.map(
             (asset: any) => {
                 return {
                     id: asset.id,
@@ -384,16 +394,14 @@ export class ContentBuilder {
                     assetType: asset.assetType,
                     category: {
                         folderPath:
-                            (asset.category &&
-                                asset.category
-                                    .folderPath) ||
+                            (asset.category && asset.category.folderPath) ||
                             asset.folderPath,
                     },
                     content: getContentBuilderAssetContent(asset),
                 };
             }
-        );
-    }
+        ));
+    };
 
     /**
      *
@@ -401,7 +409,7 @@ export class ContentBuilder {
      */
     setContentBuilderDependenciesFromPackage = async (packageOut: any) => {
         try {
-            const newDependencies: { [key: string]: any } = {}
+            const newDependencies: { [key: string]: any } = {};
             for (const a in packageOut['contentBuilder']['assets']) {
                 let asset = packageOut['contentBuilder']['assets'][a];
                 let content = await getContentBuilderAssetContent(asset);
@@ -427,16 +435,20 @@ export class ContentBuilder {
                             packageOut
                         );
 
-                        matchedValue = dependency.matchedValue || matchedValue
+                        matchedValue = dependency.matchedValue || matchedValue;
                         let dependencyReference = {
                             bldrId: dependency.bldrId,
                             context: dependency.context,
-                            reference
-                        }
+                            reference,
+                        };
 
                         if (dependency && dependency.exists) {
-                            asset.content = await setUpdatedPackageAssetContent(dependencyReference, matchedValue, content);
-                            asset.dependencies.push(dependencyReference)
+                            asset.content = await setUpdatedPackageAssetContent(
+                                dependencyReference,
+                                matchedValue,
+                                content
+                            );
+                            asset.dependencies.push(dependencyReference);
                             content = asset.content;
 
                             // remove matched value from dependency object
@@ -447,21 +459,32 @@ export class ContentBuilder {
                             asset.dependencies.push({
                                 bldrId: dependency.bldrId,
                                 context: dependency.context,
-                                reference
-                            })
+                                reference,
+                            });
 
-                            asset.content = await setUpdatedPackageAssetContent(dependencyReference, matchedValue, content);
+                            asset.content = await setUpdatedPackageAssetContent(
+                                dependencyReference,
+                                matchedValue,
+                                content
+                            );
                             content = asset.content;
 
-                            newDependencies[dependencyContext] = newDependencies[dependencyContext] || {
-                                assets: []
-                            }
-                            packageOut[dependencyContext] = packageOut[dependencyContext] || {
-                                assets: []
-                            }
+                            newDependencies[dependencyContext] =
+                                newDependencies[dependencyContext] || {
+                                    assets: [],
+                                };
+                            packageOut[dependencyContext] = packageOut[
+                                dependencyContext
+                            ] || {
+                                assets: [],
+                            };
 
-                            newDependencies[dependencyContext]['assets'].push(dependency.payload);
-                            packageOut[dependencyContext]['assets'].push(dependency.payload);
+                            newDependencies[dependencyContext]['assets'].push(
+                                dependency.payload
+                            );
+                            packageOut[dependencyContext]['assets'].push(
+                                dependency.payload
+                            );
                         }
                     }
                 }
@@ -469,12 +492,11 @@ export class ContentBuilder {
 
             return {
                 newDependencies,
-                packageOut
-            }
+                packageOut,
+            };
         } catch (err: any) {
-            console.log(err)
-            console.log('Some dependencies in package do not exist')
+            console.log(err);
+            console.log('Some dependencies in package do not exist');
         }
-
-    }
+    };
 }

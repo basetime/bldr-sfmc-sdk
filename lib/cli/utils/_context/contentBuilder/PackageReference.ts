@@ -17,9 +17,7 @@ const contentBuilderPackageReference = [
     'LookupOrderedRows',
     'LookupOrderedRowsCS',
     'LookupRowsCS',
-    'DataExtension.init'
+    'DataExtension.init',
 ];
 
-export {
-    contentBuilderPackageReference
-}
+export { contentBuilderPackageReference };

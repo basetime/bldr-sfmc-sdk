@@ -1,7 +1,7 @@
-import { match } from "assert";
-import { el } from "date-fns/locale";
-import { guid } from "../..";
-import { SFMC_Client } from "../../../types/sfmc_client";
+import { match } from 'assert';
+import { el } from 'date-fns/locale';
+import { guid } from '../..';
+import { SFMC_Client } from '../../../types/sfmc_client';
 /**
  * Gather dependency when Package Reference RegEx
  * @param reference
@@ -17,11 +17,13 @@ const getAssetDependency = async (
     asset: any,
     packageOut: {
         contentBuilder?: {
-            assets: [{
-                id: number;
-                name: string;
-            }]
-        }
+            assets: [
+                {
+                    id: number;
+                    name: string;
+                }
+            ];
+        };
     }
 ) => {
     let resp: {
@@ -37,15 +39,15 @@ const getAssetDependency = async (
             bldrId: string;
         }[];
         assetType?: {
-            name: string
-        }
+            name: string;
+        };
     } = {
         exists: false,
         matchedValue,
         reference,
-        context: "",
+        context: '',
         payload: {},
-        dependencies: []
+        dependencies: [],
     };
 
     // Generate new bldrId for asset
@@ -71,14 +73,17 @@ const getAssetDependency = async (
         case 'UpsertData':
         case 'UpsertDE':
         case 'ClaimRow':
-            resp.matchedValue = matchedValue.split(',')[0].trim()
+            resp.matchedValue = matchedValue.split(',')[0].trim();
             resp.context = 'dataExtension';
-            resp.payload = await client.emailStudio.retrieveDataExtensionPayloadByName(resp.matchedValue);
-            bldrId = await guid()
+            resp.payload =
+                await client.emailStudio.retrieveDataExtensionPayloadByName(
+                    resp.matchedValue
+                );
+            bldrId = await guid();
             resp.payload.bldrId = bldrId;
             resp.payload.assetType = {
-                name: "dataextension"
-            }
+                name: 'dataextension',
+            };
             resp.bldrId = bldrId;
 
             break;
@@ -87,16 +92,19 @@ const getAssetDependency = async (
         case 'ContentBlockbyID':
             resp.context = 'contentBuilder';
             // Do not capture existing Content Builder assets if they already exist in package
-            assetExists = packageOut.contentBuilder?.assets.find((asset: { id: number }) => Number(asset.id) === Number(matchedValue));
+            assetExists = packageOut.contentBuilder?.assets.find(
+                (asset: { id: number }) =>
+                    Number(asset.id) === Number(matchedValue)
+            );
 
             // Do not capture existing Content Builder assets if they already exist in package
             if (assetExists) {
                 assetExists.exists = true;
-                assetExists.context = 'contentBuilder'
-                return assetExists
+                assetExists.context = 'contentBuilder';
+                return assetExists;
             } else {
-                resp.payload = await client.asset.getByAssetId(matchedValue)
-                bldrId = await guid()
+                resp.payload = await client.asset.getByAssetId(matchedValue);
+                bldrId = await guid();
                 resp.payload.bldrId = bldrId;
                 resp.bldrId = bldrId;
             }
@@ -105,29 +113,30 @@ const getAssetDependency = async (
         case 'ContentBlockByName':
             contentBlockPathArray = matchedValue.split('\\').filter(Boolean);
             contentBlockName = contentBlockPathArray.pop();
-            contentBlockFolder = contentBlockPathArray[contentBlockPathArray.length - 1];
+            contentBlockFolder =
+                contentBlockPathArray[contentBlockPathArray.length - 1];
 
             // Do not capture existing Content Builder assets if they already exist in package
-            assetExists = packageOut.contentBuilder?.assets.find((asset: { name: string }) => asset.name === contentBlockName);
+            assetExists = packageOut.contentBuilder?.assets.find(
+                (asset: { name: string }) => asset.name === contentBlockName
+            );
             resp.context = 'contentBuilder';
 
             if (assetExists) {
                 assetExists.exists = true;
-                assetExists.context = 'contentBuilder'
-                return assetExists
+                assetExists.context = 'contentBuilder';
+                return assetExists;
             } else {
-
-                const dependencyRequest = await client.asset.getAssetByNameAndFolder(
-                    {
+                const dependencyRequest =
+                    await client.asset.getAssetByNameAndFolder({
                         assetName: contentBlockName,
-                        assetFolderName: contentBlockFolder
-                    }
-                )
+                        assetFolderName: contentBlockFolder,
+                    });
 
-                resp.payload = dependencyRequest
+                resp.payload = dependencyRequest;
             }
 
-            bldrId = await guid()
+            bldrId = await guid();
             resp.payload.bldrId = bldrId;
             resp.bldrId = bldrId;
             break;
@@ -135,24 +144,17 @@ const getAssetDependency = async (
     }
 
     return resp;
-}
-
-
+};
 
 const setUpdatedPackageAssetContent = (
     dependencyReference: {
-        reference: string,
-        bldrId: string
+        reference: string;
+        bldrId: string;
     },
     matchedValue: string,
     assetContent: string
 ) => {
-
-    const {
-        reference,
-        bldrId
-    } = dependencyReference
-
+    const { reference, bldrId } = dependencyReference;
 
     switch (reference) {
         case 'Lookup':
@@ -169,25 +171,21 @@ const setUpdatedPackageAssetContent = (
         case 'UpsertData':
         case 'UpsertDE':
         case 'ClaimRow':
-            assetContent = assetContent.replaceAll(matchedValue, bldrId)
+            assetContent = assetContent.replaceAll(matchedValue, bldrId);
             break;
         case 'ContentBlockById':
         case 'ContentBlockByID':
         case 'ContentBlockbyID':
-            assetContent = assetContent.replaceAll(matchedValue, bldrId)
+            assetContent = assetContent.replaceAll(matchedValue, bldrId);
             break;
         case 'ContentBlockByName':
-            assetContent = assetContent.replaceAll(matchedValue, bldrId)
+            assetContent = assetContent.replaceAll(matchedValue, bldrId);
 
             break;
         default:
     }
 
-    return assetContent
-}
+    return assetContent;
+};
 
-
-export {
-    getAssetDependency,
-    setUpdatedPackageAssetContent
-}
+export { getAssetDependency, setUpdatedPackageAssetContent };

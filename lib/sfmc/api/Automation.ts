@@ -1,9 +1,7 @@
 import { Client } from '../types/sfmc_client';
 import { handleError } from '../utils/handleError';
 import { automationStudioActivityTypes } from '../utils/automationActivityTypes';
-import {
-    MappingByActivityTypeId,
-} from '../utils/automationActivities';
+import { MappingByActivityTypeId } from '../utils/automationActivities';
 
 const { getProperties } = require('sfmc-soap-object-reference');
 const automationDefinition = getProperties('Automation');
@@ -59,14 +57,14 @@ export class Automation {
             return handleError(err);
         }
     }
-     /**
+    /**
      * Search for Automation Studio Activity by Type and Name
      *
      * @param {string} request.searchActivity
      * @param {string} request.searchTerm
      * @returns
      */
-      async searchActivityByCategoryId(request: {
+    async searchActivityByCategoryId(request: {
         searchActivity: string;
         categoryId: string;
     }) {
@@ -245,8 +243,8 @@ export class Automation {
 
                         stepActivity.assetType = assetType;
                         stepActivity.category = {
-                            folderPath: assetType.folder
-                        }
+                            folderPath: assetType.folder,
+                        };
 
                         activities.push(stepActivity);
                     }
@@ -379,9 +377,9 @@ export class Automation {
                 `/automation/v1/${searchActivity}?$filter=name='${searchTerm}'`
             );
         } catch (err: any) {
-           return err;
+            return err;
         }
-    }
+    };
 
     /**
      *
@@ -406,13 +404,11 @@ export class Automation {
      * @param asset
      * @returns
      */
-    async patchAutomationAsset(asset: {
-        [key: string]: any
-    }) {
+    async patchAutomationAsset(asset: { [key: string]: any }) {
         try {
             const assetType = asset.assetType;
             const objectKey: string = assetType.objectIdKey;
-            const assetObjectId: string = asset && asset[objectKey]
+            const assetObjectId: string = asset && asset[objectKey];
 
             const resp = await this.client.rest.patch(
                 `/automation/v1/${assetType.api}/${assetObjectId}`,

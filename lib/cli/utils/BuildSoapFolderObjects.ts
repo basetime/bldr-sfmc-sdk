@@ -3,9 +3,15 @@ import { uniqueArrayByKey } from '.';
 
 const buildFolderPathsSoap = async (folderResponse: any[]) => {
     const simplifiedFolders = await simplifiedFolderResponse(folderResponse);
-    const parentFolders = ['Content Builder', 'my automations', 'Data Extensions', 'Query', 'Scripts'];
+    const parentFolders = [
+        'Content Builder',
+        'my automations',
+        'Data Extensions',
+        'Query',
+        'Scripts',
+    ];
     let folders = await uniqueArrayByKey(simplifiedFolders, 'ID');
-    folders = folders.sort((a,b) => a.ID - b.ID)
+    folders = folders.sort((a, b) => a.ID - b.ID);
 
     const foldersOut = [];
     const compiledFolderPaths = [];
@@ -40,7 +46,8 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
     do {
         for (const f in folders) {
             const folder = folders[f];
-            const parentFolder = folder.ParentFolder.Name || parentFolderObject.Name;
+            const parentFolder =
+                folder.ParentFolder.Name || parentFolderObject.Name;
             let parentIsRootFolder = parentFolder === rootFolder ? true : false;
 
             if (parentIsRootFolder) {
@@ -87,7 +94,8 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
                     // Remove processed Object from Original Array
                     folders.splice(
                         folders.findIndex(
-                            (orgFolder) => Number(orgFolder.ID) === Number(folder.ID)
+                            (orgFolder) =>
+                                Number(orgFolder.ID) === Number(folder.ID)
                         ),
                         1
                     );
@@ -106,7 +114,6 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
 };
 
 const simplifiedFolderResponse = (folderResponse: SFMC_SOAP_Folder[]) => {
-
     return (
         (folderResponse &&
             folderResponse.map((folder: SFMC_SOAP_Folder) => {
