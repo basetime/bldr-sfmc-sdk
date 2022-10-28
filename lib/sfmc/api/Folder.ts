@@ -74,7 +74,7 @@ export class Folder {
                 }
             }
 
-            const resp = await this.client.soap.retrieve(
+            const resp = await this.client.soap.retrieveBulk(
                 'DataFolder',
                 DataFolder,
                 {
@@ -155,7 +155,7 @@ export class Folder {
             const response: {
                 OverallStatus: string;
                 Results: SFMC_SOAP_Folder[];
-            } = await this.client.soap.retrieve('DataFolder', DataFolder, {
+            } = await this.client.soap.retrieveBulk('DataFolder', DataFolder, {
                 filter: {
                     leftOperand: {
                         leftOperand: 'ContentType',

@@ -151,7 +151,7 @@ export class ContentBuilder {
                             },
                         };
 
-                        if(Object.prototype.hasOwnProperty.call(asset, 'sharingProperties')){
+                        if (Object.prototype.hasOwnProperty.call(asset, 'sharingProperties')) {
                             assetOutput.sharingProperties = asset.sharingProperties
                         }
 
@@ -194,6 +194,13 @@ export class ContentBuilder {
         categoryId: number;
     }) => {
         try {
+            if (!request.contentType) {
+                throw new Error('contentType required')
+            }
+            if (!request.categoryId) {
+                throw new Error('categoryId required')
+            }
+
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
@@ -222,26 +229,25 @@ export class ContentBuilder {
                 throw new Error(assetResponse);
             }
 
-            if (assetResponse.items.length === 0) {
-                throw new Error('No items returned')
-            }
 
             const formattedAssetResponse =
                 assetResponse &&
                 assetResponse.items &&
+                assetResponse.items.length &&
                 buildFolderPaths &&
-                (await formatContentBuilderAssets(
+                buildFolderPaths.folders
+                && await formatContentBuilderAssets(
                     assetResponse.items,
                     buildFolderPaths.folders
-                ));
+                ) || [];
 
-            const formattedFolders = buildFolderPaths.folders.map((folder) => {
+            const formattedFolders = buildFolderPaths.folders && buildFolderPaths.folders.length && buildFolderPaths.folders.map((folder) => {
                 return {
                     id: folder.ID,
                     name: folder.Name,
                     parentId: folder.ParentFolder.ID,
                     folderPath: folder.FolderPath
-                  }
+                }
             })
 
             return {
@@ -310,20 +316,20 @@ export class ContentBuilder {
                 ));
 
 
-                const formattedFolders = buildFolderPaths.folders.map((folder) => {
-                    return {
-                        id: folder.ID,
-                        name: folder.Name,
-                        parentId: folder.ParentFolder.ID,
-                        folderPath: folder.FolderPath
-                      }
-                })
-
-
+            const formattedFolders = buildFolderPaths.folders.map((folder) => {
                 return {
-                    folders: formattedFolders,
-                    assets: formattedAssetResponse || []
+                    id: folder.ID,
+                    name: folder.Name,
+                    parentId: folder.ParentFolder.ID,
+                    folderPath: folder.FolderPath
                 }
+            })
+
+
+            return {
+                folders: formattedFolders,
+                assets: formattedAssetResponse || []
+            }
         } catch (err: any) {
             return err.message;
         }
