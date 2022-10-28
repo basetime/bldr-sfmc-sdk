@@ -110,57 +110,61 @@ export class ContentBuilder {
         searchKey: string;
         searchTerm: string;
     }) => {
-        const response = await this.sfmc.asset.searchAssets(request);
-        const formattedResponse =
-            (response &&
-                response.items.map(
-                    (asset: {
-                        id: number;
-                        name: string;
-                        assetType: {
+        try {
+            const response = await this.sfmc.asset.searchAssets(request);
+            const formattedResponse =
+                (response &&
+                    response.items.map(
+                        (asset: {
+                            id: number;
                             name: string;
-                        };
-                        createdDate: string;
-                        modifiedDate: string;
-                        category: {
-                            name: string;
-                            parentId: number;
-                        };
-                        sharingProperties?: any
-                    }) => {
-                        let assetOutput: {
-                            sharingProperties?: any;
-                            ID: number;
-                            Name: string;
-                            AssetType: string;
-                            CreatedDate: string;
-                            ModifiedDate: string;
-                            Category: {
+                            assetType: {
+                                name: string;
+                            };
+                            createdDate: string;
+                            modifiedDate: string;
+                            category: {
+                                name: string;
+                                parentId: number;
+                            };
+                            sharingProperties?: any
+                        }) => {
+                            let assetOutput: {
+                                sharingProperties?: any;
+                                ID: number;
                                 Name: string;
-                                ParentId: number;
+                                AssetType: string;
+                                CreatedDate: string;
+                                ModifiedDate: string;
+                                Category: {
+                                    Name: string;
+                                    ParentId: number;
+                                }
+                            } = {
+                                ID: asset.id,
+                                Name: asset.name,
+                                AssetType: asset.assetType.name,
+                                CreatedDate: asset.createdDate,
+                                ModifiedDate: asset.modifiedDate,
+                                Category: {
+                                    Name: asset.category.name,
+                                    ParentId: asset.category.parentId,
+                                },
+                            };
+
+                            if (Object.prototype.hasOwnProperty.call(asset, 'sharingProperties')) {
+                                assetOutput.sharingProperties = asset.sharingProperties
                             }
-                        } = {
-                            ID: asset.id,
-                            Name: asset.name,
-                            AssetType: asset.assetType.name,
-                            CreatedDate: asset.createdDate,
-                            ModifiedDate: asset.modifiedDate,
-                            Category: {
-                                Name: asset.category.name,
-                                ParentId: asset.category.parentId,
-                            },
-                        };
 
-                        if (Object.prototype.hasOwnProperty.call(asset, 'sharingProperties')) {
-                            assetOutput.sharingProperties = asset.sharingProperties
+                            return assetOutput
                         }
+                    )) ||
+                [];
 
-                        return assetOutput
-                    }
-                )) ||
-            [];
-
-        return formattedResponse;
+            return formattedResponse;
+        } catch (err) {
+            return err
+        }
     };
     /**
      *
@@ -248,7 +252,7 @@ export class ContentBuilder {
                     parentId: folder.ParentFolder.ID,
                     folderPath: folder.FolderPath
                 }
-            })
+            }) || []
 
             return {
                 folders: formattedFolders || [],
@@ -298,40 +302,42 @@ export class ContentBuilder {
                 assetResponse.category.id;
 
 
-            const folderResponse =
-                await this.sfmc.folder.getFoldersFromMiddle({
-                    contentType: 'asset',
-                    categoryId,
-                });
+            const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
+                contentType: 'asset',
+                categoryId,
+            });
 
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
-
             const formattedAssetResponse =
-                assetResponse &&
-                buildFolderPaths &&
-                (await formatContentBuilderAssets(
+                assetResponse
+                && assetResponse.items
+                && assetResponse.items.length
+                && buildFolderPaths
+                && buildFolderPaths.folders
+                && await formatContentBuilderAssets(
                     assetResponse,
                     buildFolderPaths.folders
-                ));
+                )
+                || [];
 
 
-            const formattedFolders = buildFolderPaths.folders.map((folder) => {
+            const formattedFolders = buildFolderPaths.folders && buildFolderPaths.folders.length && buildFolderPaths.folders.map((folder) => {
                 return {
                     id: folder.ID,
                     name: folder.Name,
                     parentId: folder.ParentFolder.ID,
                     folderPath: folder.FolderPath
                 }
-            })
+            }) || []
 
 
             return {
-                folders: formattedFolders,
+                folders: formattedFolders || [],
                 assets: formattedAssetResponse || []
             }
         } catch (err: any) {
-            return err.message;
+            return err;
         }
     };
 
