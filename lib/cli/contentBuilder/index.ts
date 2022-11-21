@@ -1,13 +1,13 @@
-import { SFMC_Client } from '../types/sfmc_client';
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
+import { SFMC_Client } from '../types/sfmc_client';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
-import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 import {
     getAssetDependency,
     setUpdatedPackageAssetContent,
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
+import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
 export class ContentBuilder {
     sfmc: SFMC_Client;
@@ -115,6 +115,8 @@ export class ContentBuilder {
     }) => {
         try {
             const response = await this.sfmc.asset.searchAssets(request);
+            console.log('response', JSON.stringify(response, null, 2));
+
             const formattedResponse =
                 (response &&
                     response.items.map(
@@ -123,6 +125,7 @@ export class ContentBuilder {
                             name: string;
                             assetType: {
                                 name: string;
+                                displayName: string;
                             };
                             createdDate: string;
                             modifiedDate: string;
@@ -131,6 +134,10 @@ export class ContentBuilder {
                                 parentId: number;
                             };
                             sharingProperties?: any;
+                            fileProperties?: {
+                                publishedURL?: string;
+                                extension?: string;
+                            };
                         }) => {
                             let assetOutput: {
                                 sharingProperties?: any;
@@ -143,6 +150,8 @@ export class ContentBuilder {
                                     Name: string;
                                     ParentId: number;
                                 };
+                                PublishedURL?: string;
+                                ImageType?: string;
                             } = {
                                 ID: asset.id,
                                 Name: asset.name,
@@ -154,6 +163,13 @@ export class ContentBuilder {
                                     ParentId: asset.category.parentId,
                                 },
                             };
+
+                            if (asset?.assetType?.displayName === 'Image') {
+                                assetOutput.PublishedURL =
+                                    asset?.fileProperties?.publishedURL;
+                                assetOutput.ImageType =
+                                    asset?.fileProperties?.extension;
+                            }
 
                             if (
                                 Object.prototype.hasOwnProperty.call(
@@ -269,6 +285,7 @@ export class ContentBuilder {
             return {
                 folders: formattedFolders || [],
                 assets: formattedAssetResponse || [],
+                rawAssets: assetResponse.items || [],
             };
         } catch (err: any) {
             return err;
