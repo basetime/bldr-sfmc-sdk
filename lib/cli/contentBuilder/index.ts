@@ -115,7 +115,6 @@ export class ContentBuilder {
     }) => {
         try {
             const response = await this.sfmc.asset.searchAssets(request);
-            console.log('response', JSON.stringify(response, null, 2));
 
             const formattedResponse =
                 (response &&
