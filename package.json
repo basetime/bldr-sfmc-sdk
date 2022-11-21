@@ -1,6 +1,6 @@
 {
     "name": "@basetime/bldr-sfmc-sdk",
-    "version": "1.0.17",
+    "version": "1.0.18",
     "description": "SDK for BLDR SFMC Core Functionality",
     "main": "dist/index.js",
     "directories": {
