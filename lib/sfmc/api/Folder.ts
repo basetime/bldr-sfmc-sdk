@@ -1,7 +1,7 @@
+import { SFMC_SOAP_Folder } from '../types/objects/sfmc_soap_folders';
 import { Client } from '../types/sfmc_client';
 import { SFMCContextMapping } from '../types/sfmc_context_mapping';
 import { handleError } from '../utils/handleError';
-import { SFMC_SOAP_Folder } from '../types/objects/sfmc_soap_folders';
 
 const { getProperties } = require('sfmc-soap-object-reference');
 const DataFolder = getProperties('DataFolder');
@@ -178,7 +178,7 @@ export class Folder {
             results.push(...responseResults);
             return results;
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
     /**
