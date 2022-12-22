@@ -5,7 +5,7 @@ import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/For
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
     getAssetDependency,
-    setUpdatedPackageAssetContent,
+    setUpdatedPackageAssetContent
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
@@ -315,9 +315,7 @@ export class ContentBuilder {
 
             if (
                 assetResponse &&
-                assetResponse.response &&
-                assetResponse.response.status &&
-                !assetResponse.response.status.test(/^2/)
+                !assetResponse.id
             ) {
                 throw new Error(assetResponse.response.statusText);
             }
@@ -334,10 +332,8 @@ export class ContentBuilder {
 
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
-            const formattedAssetResponse =
+            let formattedAssetResponse =
                 (assetResponse &&
-                    assetResponse.items &&
-                    assetResponse.items.length &&
                     buildFolderPaths &&
                     buildFolderPaths.folders &&
                     (await formatContentBuilderAssets(
