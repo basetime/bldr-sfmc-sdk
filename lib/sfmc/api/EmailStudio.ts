@@ -1,18 +1,13 @@
+import { guid } from '../../cli/utils';
+import { buildFolderPathsSoap } from '../../cli/utils/BuildSoapFolderObjects';
+import { FieldTypes } from '../types/objects/sfmc_data_extension_assets';
 import { Client } from '../types/sfmc_client';
 import { handleError } from '../utils/handleError';
-import { buildFolderPathsSoap } from '../../cli/utils/BuildSoapFolderObjects';
-import { automationStudioActivityTypes } from '../utils/automationActivityTypes';
-import {
-    MappingByActivityTypeId,
-    MappingByActivityType,
-} from '../utils/automationActivities';
 import { capitalizeKeys } from '../utils/modifyObject';
-import { guid } from '../../cli/utils';
 const { getProperties } = require('sfmc-soap-object-reference');
 const emailSendDefinition = getProperties('EmailSendDefinition');
 const dataExtensionDefinition = getProperties('DataExtension');
 const dataExtensionDefinitionField = getProperties('DataExtensionField');
-import { FieldTypes } from '../types/objects/sfmc_data_extension_assets';
 
 export class EmailStudio {
     client;
@@ -410,6 +405,7 @@ export class EmailStudio {
 
             //Get DE Payload
             let de: {
+                objectId: string;
                 bldrId: string;
                 name: string;
                 customerKey: string;
@@ -435,6 +431,7 @@ export class EmailStudio {
                 dataRetentionPeriodUnitOfMeasure?: number;
             } = {
                 bldrId: guid(),
+                objectId: dataExtension.Results[0].ObjectID,
                 name: dataExtension.Results[0].Name,
                 customerKey: dataExtension.Results[0].CustomerKey,
                 description: dataExtension.Results[0].Description,
