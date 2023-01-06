@@ -8,7 +8,8 @@ const capitalizeKeys = (obj: any) => {
     var key, upKey;
     for (key in objectOut) {
         if (Object.prototype.hasOwnProperty.call(objectOut, key)) {
-            upKey = capitalizeFirstLetter(key);
+            upKey =
+                key.length > 2 ? capitalizeFirstLetter(key) : key.toUpperCase();
             if (upKey !== key) {
                 objectOut[upKey] = objectOut[key];
                 delete objectOut[key];
@@ -23,4 +24,30 @@ const capitalizeKeys = (obj: any) => {
     return objectOut;
 };
 
-export { capitalizeKeys };
+const lowercaseFirstLetter = (string: string) => {
+    return string.charAt(0).toLowerCase() + string.slice(1);
+};
+
+const lowercaseKeys = (obj: any) => {
+    let objectOut = obj;
+
+    var key, upKey;
+    for (key in objectOut) {
+        if (Object.prototype.hasOwnProperty.call(objectOut, key)) {
+            upKey =
+                key.length > 2 ? lowercaseFirstLetter(key) : key.toLowerCase();
+            if (upKey !== key) {
+                objectOut[upKey] = objectOut[key];
+                delete objectOut[key];
+            }
+            // recurse
+            if (typeof objectOut[upKey] === 'object') {
+                lowercaseKeys(objectOut[upKey]);
+            }
+        }
+    }
+
+    return objectOut;
+};
+
+export { capitalizeKeys, lowercaseKeys };

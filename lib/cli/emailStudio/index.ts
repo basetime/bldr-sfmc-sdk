@@ -1,13 +1,6 @@
-import { SFMC_Client } from '../types/sfmc_client';
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
+import { SFMC_Client } from '../types/sfmc_client';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
-import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
-import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
-import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
-import {
-    getAssetDependency,
-    setUpdatedPackageAssetContent,
-} from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 
 export class EmailStudio {
     sfmc: SFMC_Client;
@@ -172,10 +165,13 @@ export class EmailStudio {
      *  }]
      * ```
      */
-    gatherAssetsByCategoryId = async (request: {
-        contentType: string;
-        categoryId: number;
-    }) => {
+    gatherAssetsByCategoryId = async (
+        request: {
+            contentType: string;
+            categoryId: number;
+        },
+        complete = false
+    ) => {
         try {
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
@@ -212,7 +208,8 @@ export class EmailStudio {
                     const dataExtensionPayload =
                         dataExtension &&
                         (await this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(
-                            dataExtension.Name
+                            dataExtension.Name,
+                            complete
                         ));
                     formattedAssetResponse.push(dataExtensionPayload);
                 }
@@ -243,7 +240,7 @@ export class EmailStudio {
      *
      * @param assetId
      */
-    gatherAssetById = async (customerKey: string) => {
+    gatherAssetById = async (customerKey: string, complete = false) => {
         try {
             if (!customerKey) {
                 throw new Error('customerKey is required');
@@ -252,7 +249,8 @@ export class EmailStudio {
             // Accounts for LegacyIds and Content Builder AssetIds
             let dataExtensionPayload =
                 await this.sfmc.emailStudio.retrieveDataExtensionPayloadByCustomerKey(
-                    customerKey
+                    customerKey,
+                    complete
                 );
             const categoryId = dataExtensionPayload.category.categoryId;
 

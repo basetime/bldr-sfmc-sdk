@@ -1,6 +1,6 @@
 {
     "name": "@basetime/bldr-sfmc-sdk",
-    "version": "1.0.22",
+    "version": "1.0.23",
     "description": "SDK for BLDR SFMC Core Functionality",
     "main": "dist/index.js",
     "directories": {
@@ -14,7 +14,8 @@
         "lint": "eslint ./lib",
         "lint:fix": "eslint ./lib --fix .",
         "clean": "npx rimraf dist",
-        "updateLink": "npm run clean && npm run build && npm rm @basetime/bldr-sfmc-sdk -g && npm link"
+        "updateLink": "npm run clean && npm run build && npm rm @basetime/bldr-sfmc-sdk -g && npm link",
+        "deploy": "npm run format:write && npm run build && npm publish"
     },
     "repository": {
         "type": "git",
