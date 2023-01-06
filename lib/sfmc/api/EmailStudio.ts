@@ -612,7 +612,6 @@ export class EmailStudio {
                 // await lowercaseKeys(fieldObj)
                 // console.log({fieldObj})
                 const updatedFieldObj = await lowercaseKeys(fieldObj);
-                console.log('updated', { updatedFieldObj });
                 fieldArray.push(updatedFieldObj);
 
                 //set sendable field type
