@@ -361,11 +361,15 @@ export class Folder {
         let down =
             (!up.stop && (await this.getSubfoldersRecursive(request))) || [];
 
-        return [
-            ...new Map(
-                [...up.results, ...down].map((item) => [item['Name'], item])
-            ).values(),
-        ];
+        return {
+            up,
+            down,
+            full: [
+                ...new Map(
+                    [...up.results, ...down].map((item) => [item['Name'], item])
+                ).values(),
+            ],
+        };
     }
     /**
      * Create a folder in SFMC via SOAP Data Folder Object

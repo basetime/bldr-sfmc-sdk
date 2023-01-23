@@ -233,10 +233,14 @@ export class ContentBuilder {
                 request
             );
 
-            const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+            const buildFolderPaths = await buildFolderPathsSoap(
+                folderResponse.full
+            );
             const isolateFolderIds =
-                buildFolderPaths &&
-                buildFolderPaths.folders
+                folderResponse &&
+                folderResponse.down &&
+                folderResponse.down.length &&
+                folderResponse.down
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
                             folder.Name !== 'Content Builder' && folder.ID

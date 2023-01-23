@@ -1,5 +1,4 @@
 import { Client } from '../types/sfmc_client';
-import { handleError } from '../utils/handleError';
 const { getProperties } = require('sfmc-soap-object-reference');
 const ListDefinition = getProperties('List');
 const AccountDefinition = getProperties('Account');
@@ -38,7 +37,7 @@ export class Account {
 
             return request;
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
     /**
@@ -67,7 +66,7 @@ export class Account {
 
             return request;
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
 
@@ -86,7 +85,7 @@ export class Account {
                 const getAllMidsRequest = await this.getInstanceDetails();
 
                 if (getAllMidsRequest.OverallStatus !== 'OK') {
-                    throw new Error(getAllMidsRequest);
+                    throw new Error(getAllMidsRequest.response.statusText);
                 }
 
                 midsArray = getAllMidsRequest.Results.map(
@@ -110,7 +109,7 @@ export class Account {
 
             return businessUnitDetails;
         } catch (err: any) {
-            return handleError(err);
+            return err.message;
         }
     }
 }

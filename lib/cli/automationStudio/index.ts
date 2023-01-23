@@ -1,14 +1,11 @@
-import { SFMC_Client } from '../types/sfmc_client';
-import { CLI_Client } from '../types/cli_client';
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
+import { SFMC_Automation } from '../types/bldr_assets/sfmc_automation';
+import { SFMC_Client } from '../types/sfmc_client';
+import { guid } from '../utils';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatAutomation } from '../utils/_context/automationStudio/FormatAutomationAsset';
-import { SFMC_Automation } from '../types/bldr_assets/sfmc_automation';
-import { MappingByActivityTypeId } from '../../sfmc/utils/automationActivities';
-import { guid } from '../utils';
 
 import { sfmc_context_mapping } from '../../sfmc/utils/sfmcContextMapping';
-import { SFMCContextMapping } from '../../sfmc/types/sfmc_context_mapping';
 
 export class AutomationStudio {
     sfmc: SFMC_Client;
@@ -180,10 +177,14 @@ export class AutomationStudio {
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
-            const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+            const buildFolderPaths = await buildFolderPathsSoap(
+                folderResponse.full
+            );
             const isolateFolderIds =
-                buildFolderPaths &&
-                buildFolderPaths.folders
+                folderResponse &&
+                folderResponse.down &&
+                folderResponse.down.length &&
+                folderResponse.down
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
                             folder.Name !== 'my automations' && folder.ID

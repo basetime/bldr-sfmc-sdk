@@ -178,12 +178,14 @@ export class EmailStudio {
             );
 
             const buildFolderPaths =
-                folderResponse && (await buildFolderPathsSoap(folderResponse));
+                folderResponse &&
+                (await buildFolderPathsSoap(folderResponse.full));
+
             const isolateFolderIds =
-                (buildFolderPaths &&
-                    buildFolderPaths.folders &&
-                    buildFolderPaths.folders.length &&
-                    buildFolderPaths.folders
+                (folderResponse &&
+                    folderResponse.down &&
+                    folderResponse.down.length &&
+                    folderResponse.down
                         .map(
                             (folder: SFMC_SOAP_Folder) =>
                                 folder.Name !== 'Data Extensions' && folder.ID
