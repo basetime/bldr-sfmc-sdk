@@ -290,10 +290,11 @@ export class EmailStudio {
                 'CustomerKey'
             )
         ) {
-
             const folderPathResponse =
                 await this.folder.getParentFoldersRecursive({
-                    contentType: shared ? 'shared_dataextension' : 'dataextension',
+                    contentType: shared
+                        ? 'shared_dataextension'
+                        : 'dataextension',
                     categoryId: dataExtension.Results[0].CategoryID,
                 });
 
@@ -305,7 +306,9 @@ export class EmailStudio {
                 (folder) => folder.ID === dataExtension.Results[0].CategoryID
             );
 
-            const FolderPath = dataExtensionFolderObject && dataExtensionFolderObject.FolderPath;
+            const FolderPath =
+                dataExtensionFolderObject &&
+                dataExtensionFolderObject.FolderPath;
 
             const dataExtensionFields = await this.getDataExtensionFields(
                 dataExtension.Results[0].CustomerKey
@@ -482,7 +485,10 @@ export class EmailStudio {
             return de;
         }
     };
-    getDataExtensionPayloadComplete = async (dataExtension: any, shared = false) => {
+    getDataExtensionPayloadComplete = async (
+        dataExtension: any,
+        shared = false
+    ) => {
         let sendableName;
         let RelatesOnSub;
         let retentionPeriodLength;
@@ -500,10 +506,11 @@ export class EmailStudio {
                 'CustomerKey'
             )
         ) {
-
             const folderPathResponse =
                 await this.folder.getParentFoldersRecursive({
-                    contentType: shared ? 'shared_dataextension' : 'dataextension',
+                    contentType: shared
+                        ? 'shared_dataextension'
+                        : 'dataextension',
                     categoryId: dataExtension.Results[0].CategoryID,
                 });
 
@@ -777,9 +784,13 @@ export class EmailStudio {
             scale?: number;
         }[]
     ) => {
-        const fieldsObj = fields && fields.length && fields.map((field) => {
-            return capitalizeKeys(field);
-        }) || [];
+        const fieldsObj =
+            (fields &&
+                fields.length &&
+                fields.map((field) => {
+                    return capitalizeKeys(field);
+                })) ||
+            [];
 
         return fieldsObj;
     };

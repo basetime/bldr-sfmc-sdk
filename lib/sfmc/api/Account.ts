@@ -89,18 +89,19 @@ export class Account {
                 }
 
                 midsArray =
-                    getAllMidsRequest &&
-                    getAllMidsRequest.Results &&
-                    getAllMidsRequest.Results.length &&
-                    getAllMidsRequest.Results.map(
-                        (BU: {
-                            Client: {
-                                ID: number;
-                            };
-                        }) => {
-                            return BU.Client.ID;
-                        }
-                    ) || [];
+                    (getAllMidsRequest &&
+                        getAllMidsRequest.Results &&
+                        getAllMidsRequest.Results.length &&
+                        getAllMidsRequest.Results.map(
+                            (BU: {
+                                Client: {
+                                    ID: number;
+                                };
+                            }) => {
+                                return BU.Client.ID;
+                            }
+                        )) ||
+                    [];
             }
 
             for (let m in midsArray) {

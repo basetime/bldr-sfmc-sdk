@@ -226,7 +226,10 @@ export class Folder {
         const initialCategory = await this.getFolder(request);
 
         if (initialCategory.OverallStatus !== 'OK') {
-            console.log('initial category', JSON.stringify(initialCategory, null, 2));
+            console.log(
+                'initial category',
+                JSON.stringify(initialCategory, null, 2)
+            );
         }
 
         if (
@@ -241,8 +244,6 @@ export class Folder {
                     initResult.ParentFolder &&
                     initResult.ParentFolder.ID) ||
                 null;
-
-
         }
 
         if (
@@ -255,7 +256,6 @@ export class Folder {
         ) {
             if (parentId) {
                 do {
-
                     const parentRequest =
                         parentId &&
                         (await this.getFolder({
@@ -264,7 +264,10 @@ export class Folder {
                         }));
 
                     if (parentRequest && parentRequest.OverallStatus !== 'OK') {
-                        console.log('parentRequest', JSON.stringify(parentRequest, null, 2));
+                        console.log(
+                            'parentRequest',
+                            JSON.stringify(parentRequest, null, 2)
+                        );
                     }
 
                     if (
@@ -281,10 +284,12 @@ export class Folder {
 
                         results.push(...parentRequest.Results);
                         parentId =
-                            parentResult &&
-                            parentResult.ParentFolder &&
-                            parentResult.ParentFolder.ContentType !== 'shared_data' &&
-                            parentResult.ParentFolder.ID || 0;
+                            (parentResult &&
+                                parentResult.ParentFolder &&
+                                parentResult.ParentFolder.ContentType !==
+                                    'shared_data' &&
+                                parentResult.ParentFolder.ID) ||
+                            0;
                     }
                 } while (parentId !== 0);
             }

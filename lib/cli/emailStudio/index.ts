@@ -177,8 +177,11 @@ export class EmailStudio {
         complete = false
     ) => {
         try {
-            const shared = request.contentType === 'shared_dataextension' ? true : false;
-            const rootParentName = shared ? 'Shared Data Extensions' : 'Data Extensions';
+            const shared =
+                request.contentType === 'shared_dataextension' ? true : false;
+            const rootParentName = shared
+                ? 'Shared Data Extensions'
+                : 'Data Extensions';
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
@@ -274,6 +277,13 @@ export class EmailStudio {
                 categoryId,
             });
 
+            if (
+                dataExtensionFolderObject &&
+                !dataExtensionFolderObject.Results
+            ) {
+                throw new Error('No Folders Found');
+            }
+
             let parentFolders =
                 await this.sfmc.folder.getParentFoldersRecursive({
                     contentType: shared
@@ -282,12 +292,10 @@ export class EmailStudio {
                     categoryId,
                 });
 
-            const folderResponse = [
+            const buildFolderPaths = await buildFolderPathsSoap([
                 ...parentFolders.results,
                 ...dataExtensionFolderObject.Results,
-            ];
-
-            const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+            ]);
 
             const formattedFolders =
                 (buildFolderPaths &&
@@ -308,8 +316,7 @@ export class EmailStudio {
                 assets: [dataExtensionPayload] || [],
             };
         } catch (err: any) {
-            console.log('err', err);
-            return err.message;
+            return err;
         }
     };
 }

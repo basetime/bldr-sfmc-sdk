@@ -5,7 +5,7 @@ import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/For
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
     getAssetDependency,
-    setUpdatedPackageAssetContent
+    setUpdatedPackageAssetContent,
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
@@ -400,22 +400,25 @@ export class ContentBuilder {
         contextAssets: any[]
     ) => {
         packageOut['contentBuilder'] = {};
-        return (packageOut['contentBuilder']['assets'] = contextAssets && contextAssets.length && contextAssets.map(
-            (asset: any) => {
-                return {
-                    id: asset.id,
-                    bldrId: asset.bldrId,
-                    name: asset.name,
-                    assetType: asset.assetType,
-                    category: {
-                        folderPath:
-                            (asset.category && asset.category.folderPath) ||
-                            asset.folderPath,
-                    },
-                    content: getContentBuilderAssetContent(asset),
-                };
-            }
-        )) || [];
+        return (
+            (packageOut['contentBuilder']['assets'] =
+                contextAssets &&
+                contextAssets.length &&
+                contextAssets.map((asset: any) => {
+                    return {
+                        id: asset.id,
+                        bldrId: asset.bldrId,
+                        name: asset.name,
+                        assetType: asset.assetType,
+                        category: {
+                            folderPath:
+                                (asset.category && asset.category.folderPath) ||
+                                asset.folderPath,
+                        },
+                        content: getContentBuilderAssetContent(asset),
+                    };
+                })) || []
+        );
     };
 
     /**
