@@ -133,7 +133,7 @@ export class Folder {
 
             return resp;
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
     /**
@@ -213,7 +213,6 @@ export class Folder {
                 rootFolderRequest.Results.length
             ) {
                 results = [...rootFolderRequest.Results];
-                stopFolderId = rootFolderRequest.Results[0].ParentFolder.ID;
 
                 if (rootFolderRequest.Results[0].ID === request.categoryId) {
                     return {
@@ -227,7 +226,7 @@ export class Folder {
         const initialCategory = await this.getFolder(request);
 
         if (initialCategory.OverallStatus !== 'OK') {
-            console.log(initialCategory);
+            console.log('initial category', JSON.stringify(initialCategory, null, 2));
         }
 
         if (
@@ -242,40 +241,55 @@ export class Folder {
                     initResult.ParentFolder &&
                     initResult.ParentFolder.ID) ||
                 null;
+
+
         }
 
-        if (parentId) {
-            do {
-                const parentRequest =
-                    parentId &&
-                    (await this.getFolder({
-                        contentType: request.contentType,
-                        categoryId: parentId,
-                    }));
+        if (
+            initialCategory &&
+            initialCategory.Results &&
+            initialCategory.Results[0] &&
+            initialCategory.Results[0].ParentFolder &&
+            initialCategory.Results[0].ParentFolder.ContentType !==
+                'shared_items'
+        ) {
+            if (parentId) {
+                do {
 
-                if (parentRequest && parentRequest.OverallStatus !== 'OK') {
-                    console.log(parentRequest);
-                }
+                    const parentRequest =
+                        parentId &&
+                        (await this.getFolder({
+                            contentType: request.contentType,
+                            categoryId: parentId,
+                        }));
 
-                if (
-                    parentRequest &&
-                    parentRequest.Results &&
-                    parentRequest.Results.length
-                ) {
-                    const parentResult: {
-                        ParentFolder: {
-                            ID: number;
-                        };
-                    } = parentRequest.Results[0];
+                    if (parentRequest && parentRequest.OverallStatus !== 'OK') {
+                        console.log('parentRequest', JSON.stringify(parentRequest, null, 2));
+                    }
 
-                    results.push(...parentRequest.Results);
-                    parentId =
-                        parentResult &&
-                        parentResult.ParentFolder &&
-                        parentResult.ParentFolder.ID;
-                }
-            } while (parentId !== 0);
+                    if (
+                        parentRequest &&
+                        parentRequest.Results &&
+                        parentRequest.Results.length
+                    ) {
+                        const parentResult: {
+                            ParentFolder: {
+                                ID: number;
+                                ContentType: string;
+                            };
+                        } = parentRequest.Results[0];
+
+                        results.push(...parentRequest.Results);
+                        parentId =
+                            parentResult &&
+                            parentResult.ParentFolder &&
+                            parentResult.ParentFolder.ContentType !== 'shared_data' &&
+                            parentResult.ParentFolder.ID || 0;
+                    }
+                } while (parentId !== 0);
+            }
         }
+
         return {
             results,
             stop: false,

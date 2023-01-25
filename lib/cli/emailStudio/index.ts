@@ -48,6 +48,8 @@ export class EmailStudio {
 
         const formattedResponse =
             (response &&
+                response.Results &&
+                response.Results.length &&
                 response.Results.map(
                     (folder: {
                         Name: string;
@@ -117,6 +119,8 @@ export class EmailStudio {
 
         const formattedResponse =
             (response &&
+                response.Results &&
+                response.Results.length &&
                 response.Results.map(
                     (dataExtension: {
                         Name: string;
@@ -173,6 +177,8 @@ export class EmailStudio {
         complete = false
     ) => {
         try {
+            const shared = request.contentType === 'shared_dataextension' ? true : false;
+            const rootParentName = shared ? 'Shared Data Extensions' : 'Data Extensions';
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
@@ -188,7 +194,7 @@ export class EmailStudio {
                     folderResponse.down
                         .map(
                             (folder: SFMC_SOAP_Folder) =>
-                                folder.Name !== 'Data Extensions' && folder.ID
+                                folder.Name !== rootParentName && folder.ID
                         )
                         .filter(Boolean)) ||
                 [];
@@ -211,7 +217,8 @@ export class EmailStudio {
                         dataExtension &&
                         (await this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(
                             dataExtension.Name,
-                            complete
+                            complete,
+                            shared
                         ));
                     formattedAssetResponse.push(dataExtensionPayload);
                 }
@@ -242,7 +249,11 @@ export class EmailStudio {
      *
      * @param assetId
      */
-    gatherAssetById = async (customerKey: string, complete = false) => {
+    gatherAssetById = async (
+        customerKey: string,
+        complete = false,
+        shared = false
+    ) => {
         try {
             if (!customerKey) {
                 throw new Error('customerKey is required');
@@ -252,18 +263,22 @@ export class EmailStudio {
             let dataExtensionPayload =
                 await this.sfmc.emailStudio.retrieveDataExtensionPayloadByCustomerKey(
                     customerKey,
-                    complete
+                    complete,
+                    shared
                 );
+
             const categoryId = dataExtensionPayload.category.categoryId;
 
             const dataExtensionFolderObject = await this.sfmc.folder.getFolder({
-                contentType: 'dataextension',
+                contentType: shared ? 'shared_dataextension' : 'dataextension',
                 categoryId,
             });
 
             let parentFolders =
                 await this.sfmc.folder.getParentFoldersRecursive({
-                    contentType: 'dataextension',
+                    contentType: shared
+                        ? 'shared_dataextension'
+                        : 'dataextension',
                     categoryId,
                 });
 
@@ -271,22 +286,29 @@ export class EmailStudio {
                 ...parentFolders.results,
                 ...dataExtensionFolderObject.Results,
             ];
+
             const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
 
-            const formattedFolders = buildFolderPaths.folders.map((folder) => {
-                return {
-                    id: folder.ID,
-                    name: folder.Name,
-                    parentId: folder.ParentFolder.ID,
-                    folderPath: folder.FolderPath,
-                };
-            });
+            const formattedFolders =
+                (buildFolderPaths &&
+                    buildFolderPaths.folders &&
+                    buildFolderPaths.folders.length &&
+                    buildFolderPaths.folders.map((folder) => {
+                        return {
+                            id: folder.ID,
+                            name: folder.Name,
+                            parentId: folder.ParentFolder.ID,
+                            folderPath: folder.FolderPath,
+                        };
+                    })) ||
+                [];
 
             return {
                 folders: formattedFolders,
                 assets: [dataExtensionPayload] || [],
             };
         } catch (err: any) {
+            console.log('err', err);
             return err.message;
         }
     };

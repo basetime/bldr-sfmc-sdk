@@ -435,24 +435,28 @@ export class AutomationStudio {
             }
 
             return (
-                resp.items.map((result: any) => {
-                    let objectKey: string = '';
-                    switch (searchActivity) {
-                        case 'ssjs':
-                            objectKey = 'ssjsActivityId';
-                            break;
-                        case 'sql':
-                            objectKey = 'queryDefinitionId';
-                            break;
-                    }
+                (resp &&
+                    resp.items &&
+                    resp.items.length &&
+                    resp.items.map((result: any) => {
+                        let objectKey: string = '';
+                        switch (searchActivity) {
+                            case 'ssjs':
+                                objectKey = 'ssjsActivityId';
+                                break;
+                            case 'sql':
+                                objectKey = 'queryDefinitionId';
+                                break;
+                        }
 
-                    return {
-                        Name: result.name,
-                        [objectKey]: result[objectKey],
-                        CategoryID: result.categoryId,
-                        ModifiedDate: result.modifiedDate,
-                    };
-                }) || []
+                        return {
+                            Name: result.name,
+                            [objectKey]: result[objectKey],
+                            CategoryID: result.categoryId,
+                            ModifiedDate: result.modifiedDate,
+                        };
+                    })) ||
+                []
             );
         } catch (err: any) {
             return err;
@@ -493,15 +497,23 @@ export class AutomationStudio {
 
         const isolateFolderIds: any[] =
             rootFolderID && rootFolderID !== request.categoryId
-                ? buildFolderPaths.folders
-                      .map(
-                          (folder: SFMC_SOAP_Folder) =>
-                              rootFolderID !== folder.ID && folder.ID
-                      )
-                      .filter(Boolean)
-                : buildFolderPaths.folders.map(
-                      (folder: SFMC_SOAP_Folder) => folder.ID
-                  );
+                ? (buildFolderPaths &&
+                      buildFolderPaths.folders &&
+                      buildFolderPaths.folders.length &&
+                      buildFolderPaths.folders
+                          .map(
+                              (folder: SFMC_SOAP_Folder) =>
+                                  rootFolderID !== folder.ID && folder.ID
+                          )
+                          .filter(Boolean)) ||
+                  []
+                : (buildFolderPaths &&
+                      buildFolderPaths.folders &&
+                      buildFolderPaths.folders.length &&
+                      buildFolderPaths.folders.map(
+                          (folder: SFMC_SOAP_Folder) => folder.ID
+                      )) ||
+                  [];
 
         const definitionReturn: any[] = [];
         for (const i in isolateFolderIds) {

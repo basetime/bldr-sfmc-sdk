@@ -8,6 +8,12 @@ const sfmc_context_mapping: SFMCContextMapping[] = [
         contentType: 'dataextension',
     },
     {
+        name: 'Shared Data Extension',
+        rootName: 'Shared Data Extensions',
+        context: 'shared_dataextension',
+        contentType: 'shared_dataextension',
+    },
+    {
         name: 'Content Builder',
         rootName: 'Content Builder',
         context: 'contentBuilder',

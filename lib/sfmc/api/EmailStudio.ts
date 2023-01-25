@@ -225,7 +225,8 @@ export class EmailStudio {
      */
     retrieveDataExtensionPayloadByName = async (
         dataExtensionName: string,
-        complete = false
+        complete = false,
+        shared = false
     ) => {
         const dataExtension = await this.client.soap.retrieve(
             'DataExtension',
@@ -240,8 +241,8 @@ export class EmailStudio {
         );
 
         return complete === false
-            ? this.getDataExtensionPayload(dataExtension)
-            : this.getDataExtensionPayloadComplete(dataExtension);
+            ? this.getDataExtensionPayload(dataExtension, shared)
+            : this.getDataExtensionPayloadComplete(dataExtension, shared);
     };
 
     /**
@@ -251,7 +252,8 @@ export class EmailStudio {
      */
     retrieveDataExtensionPayloadByCustomerKey = async (
         customerKey: string,
-        complete = false
+        complete = false,
+        shared = false
     ) => {
         const dataExtension = await this.client.soap.retrieve(
             'DataExtension',
@@ -266,11 +268,11 @@ export class EmailStudio {
         );
 
         return complete === false
-            ? this.getDataExtensionPayload(dataExtension)
-            : this.getDataExtensionPayloadComplete(dataExtension);
+            ? this.getDataExtensionPayload(dataExtension, shared)
+            : this.getDataExtensionPayloadComplete(dataExtension, shared);
     };
 
-    getDataExtensionPayload = async (dataExtension: any) => {
+    getDataExtensionPayload = async (dataExtension: any, shared = false) => {
         let sendableName;
         let RelatesOnSub;
         let retentionPeriodLength;
@@ -288,19 +290,22 @@ export class EmailStudio {
                 'CustomerKey'
             )
         ) {
+
             const folderPathResponse =
                 await this.folder.getParentFoldersRecursive({
-                    contentType: 'dataextension',
+                    contentType: shared ? 'shared_dataextension' : 'dataextension',
                     categoryId: dataExtension.Results[0].CategoryID,
                 });
 
             const compiledFolderPaths = await buildFolderPathsSoap(
                 folderPathResponse.results
             );
+
             const dataExtensionFolderObject = compiledFolderPaths.folders.find(
                 (folder) => folder.ID === dataExtension.Results[0].CategoryID
             );
-            const { FolderPath } = dataExtensionFolderObject;
+
+            const FolderPath = dataExtensionFolderObject && dataExtensionFolderObject.FolderPath;
 
             const dataExtensionFields = await this.getDataExtensionFields(
                 dataExtension.Results[0].CustomerKey
@@ -477,7 +482,7 @@ export class EmailStudio {
             return de;
         }
     };
-    getDataExtensionPayloadComplete = async (dataExtension: any) => {
+    getDataExtensionPayloadComplete = async (dataExtension: any, shared = false) => {
         let sendableName;
         let RelatesOnSub;
         let retentionPeriodLength;
@@ -495,9 +500,10 @@ export class EmailStudio {
                 'CustomerKey'
             )
         ) {
+
             const folderPathResponse =
                 await this.folder.getParentFoldersRecursive({
-                    contentType: 'dataextension',
+                    contentType: shared ? 'shared_dataextension' : 'dataextension',
                     categoryId: dataExtension.Results[0].CategoryID,
                 });
 
@@ -548,69 +554,6 @@ export class EmailStudio {
             // Organize and format DE Field Schema
             for (let a = 0; a < fieldLength; a++) {
                 let fieldObj = dataExtensionFieldArr[a];
-
-                //Fields that need to be removed prior to creation of new DE
-                // delete fieldObj.AttributeMaps;
-                // delete fieldObj.CustomerKey;
-                // delete fieldObj.ObjectID;
-
-                // if (fieldObj.MaxLength == '' || fieldObj.MaxLength == 0) {
-                //     delete fieldObj.MaxLength;
-                // }
-
-                // delete fieldObj.StorageType;
-                // delete fieldObj.DataExtension;
-                // delete fieldObj.DataType;
-                // delete fieldObj.IsCreatable;
-                // delete fieldObj.IsUpdatable;
-                // delete fieldObj.IsRetrievable;
-                // delete fieldObj.IsQueryable;
-                // delete fieldObj.IsFilterable;
-                // delete fieldObj.IsPartnerProperty;
-                // delete fieldObj.IsAccountProperty;
-                // delete fieldObj.PartnerMap;
-                // delete fieldObj.Markups;
-                // delete fieldObj.Precision;
-
-                // if (fieldObj.FieldType !== 'Decimal') {
-                //     delete fieldObj.Scale;
-                // }
-
-                // delete fieldObj.Label;
-                // if (fieldObj.MinLength == '' || fieldObj.MinLength == 0) {
-                //     delete fieldObj.MinLength;
-                // }
-                // delete fieldObj.CreatedDate;
-                // delete fieldObj.ModifiedDate;
-                // delete fieldObj.ID;
-                // delete fieldObj.IsRestrictedPicklist;
-                // delete fieldObj.PicklistItems;
-                // delete fieldObj.IsSendTime;
-                // delete fieldObj.DisplayOrder;
-                // delete fieldObj.References;
-                // delete fieldObj.RelationshipName;
-                // delete fieldObj.Status;
-                // delete fieldObj.IsContextSpecific;
-                // delete fieldObj.Client;
-                // delete fieldObj.PartnerProperties;
-
-                // const field: FieldTypes = {
-                //     partnerKey: fieldObj.PartnerKey,
-                //     name: fieldObj.Name,
-                //     defaultValue: fieldObj.DefaultValue,
-                //     maxLength: fieldObj.MaxLength,
-                //     isRequired: fieldObj.IsRequired,
-                //     ordinal: fieldObj.Ordinal,
-                //     isPrimaryKey: fieldObj.IsPrimaryKey,
-                //     fieldType: fieldObj.FieldType,
-                // };
-
-                // if (fieldObj.FieldType === 'Decimal') {
-                //     field.scale = fieldObj.Scale;
-                // }
-
-                // await lowercaseKeys(fieldObj)
-                // console.log({fieldObj})
                 const updatedFieldObj = await lowercaseKeys(fieldObj);
                 fieldArray.push(updatedFieldObj);
 
@@ -834,9 +777,9 @@ export class EmailStudio {
             scale?: number;
         }[]
     ) => {
-        const fieldsObj = fields.map((field) => {
+        const fieldsObj = fields && fields.length && fields.map((field) => {
             return capitalizeKeys(field);
-        });
+        }) || [];
 
         return fieldsObj;
     };
