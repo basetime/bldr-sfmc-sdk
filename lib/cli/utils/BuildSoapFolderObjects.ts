@@ -5,6 +5,7 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
     const simplifiedFolders = await simplifiedFolderResponse(folderResponse);
     const parentFolders = [
         'Content Builder',
+        'Shared Content',
         'my automations',
         'Data Extensions',
         'Shared Data Extensions',

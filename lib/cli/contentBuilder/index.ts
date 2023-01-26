@@ -4,8 +4,8 @@ import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
-    getAssetDependency,
-    setUpdatedPackageAssetContent,
+  getAssetDependency,
+  setUpdatedPackageAssetContent
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
@@ -219,10 +219,13 @@ export class ContentBuilder {
      *  }]
      * ```
      */
-    gatherAssetsByCategoryId = async (request: {
-        contentType: string;
-        categoryId: number;
-    }) => {
+    gatherAssetsByCategoryId = async (
+        request: {
+            contentType: string;
+            categoryId: number;
+        },
+        shared = false
+    ) => {
         try {
             if (!request.contentType) {
                 throw new Error('contentType required');
@@ -231,9 +234,15 @@ export class ContentBuilder {
                 throw new Error('categoryId required');
             }
 
-            const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
-                request
-            );
+            console.log({
+                contentType: shared ? 'asset-shared' : 'asset',
+                categoryId: request.categoryId,
+            })
+            const rootFolderName = shared ? 'Shared Content' : 'Content Builder' ;
+            const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
+                contentType: shared ? 'asset-shared' : 'asset',
+                categoryId: request.categoryId,
+            });
 
             const buildFolderPaths = await buildFolderPathsSoap(
                 folderResponse.full
@@ -245,7 +254,7 @@ export class ContentBuilder {
                 folderResponse.down
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
-                            folder.Name !== 'Content Builder' && folder.ID
+                            folder.Name !== rootFolderName && folder.ID
                     )
                     .filter(Boolean);
 
@@ -300,7 +309,7 @@ export class ContentBuilder {
      *
      * @param assetId
      */
-    gatherAssetById = async (assetId: number, legacy: Boolean = false) => {
+    gatherAssetById = async (assetId: number, legacy: Boolean = false, shared = false) => {
         try {
             if (!assetId) {
                 throw new Error('assetId is required');
@@ -311,6 +320,8 @@ export class ContentBuilder {
                 (legacy &&
                     (await this.sfmc.asset.getAssetByLegacyId(assetId))) ||
                 (await this.sfmc.asset.getByAssetId(assetId));
+
+
             assetResponse =
                 (legacy &&
                     assetResponse &&
@@ -329,11 +340,13 @@ export class ContentBuilder {
                 assetResponse.category.id;
 
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
-                contentType: 'asset',
+                contentType: shared ? 'asset-shared' : 'asset',
                 categoryId,
             });
 
-            const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+            const buildFolderPaths = await buildFolderPathsSoap(
+                folderResponse.full
+            );
 
             let formattedAssetResponse =
                 (assetResponse &&
