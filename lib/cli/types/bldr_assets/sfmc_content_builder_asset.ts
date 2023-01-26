@@ -18,4 +18,10 @@ export interface BLDR_SFMC_Content_Builder_Asset {
     meta?: any;
     slots?: any;
     views?: any;
+    businessUnitAvailability?: {
+        [key: string]: any
+    }
+    sharingProperties?: {
+        [key: string]: any
+    }
 }

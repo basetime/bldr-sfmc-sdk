@@ -234,10 +234,6 @@ export class ContentBuilder {
                 throw new Error('categoryId required');
             }
 
-            console.log({
-                contentType: shared ? 'asset-shared' : 'asset',
-                categoryId: request.categoryId,
-            })
             const rootFolderName = shared ? 'Shared Content' : 'Content Builder' ;
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
                 contentType: shared ? 'asset-shared' : 'asset',

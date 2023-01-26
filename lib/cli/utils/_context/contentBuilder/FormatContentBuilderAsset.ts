@@ -25,6 +25,7 @@ const setAssetPostObject = (
     asset: SFMC_Content_Builder_Asset,
     folders: BLDR_Folder[]
 ) => {
+    console.log({asset})
     // Generate new bldrId for asset
     const bldrId = guid();
 
@@ -39,6 +40,7 @@ const setAssetPostObject = (
     const folderPath = findAssetsFolderObject
         ? findAssetsFolderObject.FolderPath
         : '';
+
 
     // Create JSON structure for new asset post
     let post: BLDR_SFMC_Content_Builder_Asset = {
@@ -66,6 +68,14 @@ const setAssetPostObject = (
     }
     if (asset.views) {
         post.views = asset.views;
+    }
+
+    if(asset.businessUnitAvailability){
+        post.businessUnitAvailability = asset.businessUnitAvailability
+    }
+
+    if(asset.sharingProperties){
+        post.sharingProperties = asset.sharingProperties
     }
 
     // if (asset.assetType.displayName === 'Image') {

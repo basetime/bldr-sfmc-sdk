@@ -53,4 +53,10 @@ export interface SFMC_Content_Builder_Asset {
     slots?: object;
     availableViews?: object[];
     modelVersion?: number;
+    businessUnitAvailability?: {
+        [key: string]: any
+    }
+    sharingProperties?: {
+        [key: string]: any
+    }
 }
