@@ -54,9 +54,9 @@ export interface SFMC_Content_Builder_Asset {
     availableViews?: object[];
     modelVersion?: number;
     businessUnitAvailability?: {
-        [key: string]: any
-    }
+        [key: string]: any;
+    };
     sharingProperties?: {
-        [key: string]: any
-    }
+        [key: string]: any;
+    };
 }

@@ -19,9 +19,9 @@ export interface BLDR_SFMC_Content_Builder_Asset {
     slots?: any;
     views?: any;
     businessUnitAvailability?: {
-        [key: string]: any
-    }
+        [key: string]: any;
+    };
     sharingProperties?: {
-        [key: string]: any
-    }
+        [key: string]: any;
+    };
 }

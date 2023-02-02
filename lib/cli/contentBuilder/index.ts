@@ -4,8 +4,8 @@ import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
-  getAssetDependency,
-  setUpdatedPackageAssetContent
+    getAssetDependency,
+    setUpdatedPackageAssetContent,
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
@@ -234,7 +234,9 @@ export class ContentBuilder {
                 throw new Error('categoryId required');
             }
 
-            const rootFolderName = shared ? 'Shared Content' : 'Content Builder' ;
+            const rootFolderName = shared
+                ? 'Shared Content'
+                : 'Content Builder';
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
                 contentType: shared ? 'asset-shared' : 'asset',
                 categoryId: request.categoryId,
@@ -305,7 +307,11 @@ export class ContentBuilder {
      *
      * @param assetId
      */
-    gatherAssetById = async (assetId: number, legacy: Boolean = false, shared = false) => {
+    gatherAssetById = async (
+        assetId: number,
+        legacy: Boolean = false,
+        shared = false
+    ) => {
         try {
             if (!assetId) {
                 throw new Error('assetId is required');
@@ -316,7 +322,6 @@ export class ContentBuilder {
                 (legacy &&
                     (await this.sfmc.asset.getAssetByLegacyId(assetId))) ||
                 (await this.sfmc.asset.getByAssetId(assetId));
-
 
             assetResponse =
                 (legacy &&
