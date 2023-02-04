@@ -1,11 +1,10 @@
-import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
 import { SFMC_Client } from '../types/sfmc_client';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
     getAssetDependency,
-    setUpdatedPackageAssetContent,
+    setUpdatedPackageAssetContent
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
@@ -237,6 +236,7 @@ export class ContentBuilder {
             const rootFolderName = shared
                 ? 'Shared Content'
                 : 'Content Builder';
+
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
                 contentType: shared ? 'asset-shared' : 'asset',
                 categoryId: request.categoryId,
@@ -245,60 +245,63 @@ export class ContentBuilder {
             const buildFolderPaths = await buildFolderPathsSoap(
                 folderResponse.full
             );
-            const isolateFolderIds =
-                folderResponse &&
-                folderResponse.down &&
-                folderResponse.down.length &&
-                folderResponse.down
-                    .map(
-                        (folder: SFMC_SOAP_Folder) =>
-                            folder.Name !== rootFolderName && folder.ID
-                    )
-                    .filter(Boolean);
 
-            const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(
-                isolateFolderIds
-            );
+            console.log('folderPaths', {buildFolderPaths})
 
-            if (
-                assetResponse &&
-                assetResponse.response &&
-                assetResponse.response.status &&
-                !assetResponse.response.status.test(/^2/)
-            ) {
-                throw new Error(assetResponse);
-            }
+            // const isolateFolderIds =
+            //     folderResponse &&
+            //     folderResponse.down &&
+            //     folderResponse.down.length &&
+            //     folderResponse.down
+            //         .map(
+            //             (folder: SFMC_SOAP_Folder) =>
+            //                 folder.Name !== rootFolderName && folder.ID
+            //         )
+            //         .filter(Boolean);
 
-            const formattedAssetResponse =
-                (assetResponse &&
-                    assetResponse.items &&
-                    assetResponse.items.length &&
-                    buildFolderPaths &&
-                    buildFolderPaths.folders &&
-                    (await formatContentBuilderAssets(
-                        assetResponse.items,
-                        buildFolderPaths.folders
-                    ))) ||
-                [];
+            // const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(
+            //     isolateFolderIds
+            // );
 
-            const formattedFolders =
-                (buildFolderPaths.folders &&
-                    buildFolderPaths.folders.length &&
-                    buildFolderPaths.folders.map((folder) => {
-                        return {
-                            id: folder.ID,
-                            name: folder.Name,
-                            parentId: folder.ParentFolder.ID,
-                            folderPath: folder.FolderPath,
-                        };
-                    })) ||
-                [];
+            // if (
+            //     assetResponse &&
+            //     assetResponse.response &&
+            //     assetResponse.response.status &&
+            //     !assetResponse.response.status.test(/^2/)
+            // ) {
+            //     throw new Error(assetResponse);
+            // }
 
-            return {
-                folders: formattedFolders || [],
-                assets: formattedAssetResponse || [],
-                rawAssets: assetResponse.items || [],
-            };
+            // const formattedAssetResponse =
+            //     (assetResponse &&
+            //         assetResponse.items &&
+            //         assetResponse.items.length &&
+            //         buildFolderPaths &&
+            //         buildFolderPaths.folders &&
+            //         (await formatContentBuilderAssets(
+            //             assetResponse.items,
+            //             buildFolderPaths.folders
+            //         ))) ||
+            //     [];
+
+            // const formattedFolders =
+            //     (buildFolderPaths.folders &&
+            //         buildFolderPaths.folders.length &&
+            //         buildFolderPaths.folders.map((folder) => {
+            //             return {
+            //                 id: folder.ID,
+            //                 name: folder.Name,
+            //                 parentId: folder.ParentFolder.ID,
+            //                 folderPath: folder.FolderPath,
+            //             };
+            //         })) ||
+            //     [];
+
+            // return {
+            //     folders: formattedFolders || [],
+            //     assets: formattedAssetResponse || [],
+            //     rawAssets: assetResponse.items || [],
+            // };
         } catch (err: any) {
             return err;
         }
