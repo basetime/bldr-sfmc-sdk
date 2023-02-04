@@ -360,81 +360,64 @@ export class Folder {
 
             // Recursively get folders from SFMC
             do {
-            const subfoldersArrayRequest = await Promise.all(
-                folders.map(async (categoryId: number) => {
-                    console.log(categoryId);
-                    console.log('promise folders', folders);
-                    console.log('request.contentType', request.contentType);
-                    // SFMC Folder response checking for subfolders
-                    let subfolderRequest = await this.getSubfolders({
-                        contentType: request.contentType,
-                        parentId: categoryId,
-                    });
+                const subfoldersArrayRequest = await Promise.all(
+                    folders.map(async (categoryId: number) => {
+                        // SFMC Folder response checking for subfolders
+                        let subfolderRequest = await this.getSubfolders({
+                            contentType: request.contentType,
+                            parentId: categoryId,
+                        });
 
-                    console.log(
-                        'subfolderRequest',
-                        JSON.stringify(subfolderRequest, null, 2)
+                        if (
+                            subfolderRequest &&
+                            Array.isArray(subfolderRequest) &&
+                            subfolderRequest.length > 0
+                        ) {
+                            let subfolderIdArray = subfolderRequest.map(
+                                (folder: { ID: number }) => folder.ID
+                            );
+
+                            return {
+                                categoryId: categoryId || null,
+                                subfolderIdArray: subfolderIdArray || null,
+                                subfolderRequest: subfolderRequest || null,
+                            };
+                        } else {
+                            return {
+                                categoryId: null,
+                                subfolderIdArray: [],
+                                subfolderRequest: [],
+                            };
+                        }
+                    })
+                ).then((response: any) => {
+                    return (
+                        (response && {
+                            folderIds: [...response[0].subfolderIdArray] || [],
+                            results: [...response[0].subfolderRequest] || [],
+                        }) ||
+                        null
                     );
+                });
 
-                    if (
-                        subfolderRequest &&
-                        Array.isArray(subfolderRequest) &&
-                        subfolderRequest.length > 0
-                    ) {
-                        let subfolderIdArray = subfolderRequest.map(
-                            (folder: { ID: number }) => folder.ID
-                        );
-
-                        return {
-                            categoryId: categoryId || null,
-                            subfolderIdArray: subfolderIdArray || null,
-                            subfolderRequest: subfolderRequest || null,
-                        };
-                    } else {
-                        return {
-                            categoryId: null,
-                            subfolderIdArray: [],
-                            subfolderRequest: [],
-                        };
-                    }
-                })
-            ).then((response: any) => {
-                console.log('promise response', JSON.stringify(response, null, 2))
-                return response && {
-                    folderIds: [...response[0].subfolderIdArray] || [],
-                    results: [...response[0].subfolderRequest] || [],
-                } || null;
-            });
-
-            if(subfoldersArrayRequest && subfoldersArrayRequest.folderIds && subfoldersArrayRequest.folderIds.length){
-                folders = subfoldersArrayRequest.folderIds || [];
-                results = subfoldersArrayRequest.results && subfoldersArrayRequest.results.length && [...results, ...subfoldersArrayRequest.results] || results
-            } else {
-                folders = []
-            }
-            // console.log('subfoldersArrayRequest', { subfoldersArrayRequest });
-            // // SFMC Folder response checking for subfolders
-            // let subfolderRequest = await this.getSubfolders({
-            //     contentType: request.contentType,
-            //     parentId: categoryId,
-            // });
-
-            // if (
-            //     subfolderRequest &&
-            //     Array.isArray(subfolderRequest) &&
-            //     subfolderRequest.length > 0
-            // ) {
-            //     let subfolderIdArray = subfolderRequest.map(
-            //         (folder: { ID: number }) => folder.ID
-            //     );
-            //     folders.push(...subfolderIdArray);
-            //     results = [...results, ...subfolderRequest];
-            // }
-
-            // folders.shift();
+                if (
+                    subfoldersArrayRequest &&
+                    subfoldersArrayRequest.folderIds &&
+                    subfoldersArrayRequest.folderIds.length
+                ) {
+                    folders = subfoldersArrayRequest.folderIds || [];
+                    results =
+                        (subfoldersArrayRequest.results &&
+                            subfoldersArrayRequest.results.length && [
+                                ...results,
+                                ...subfoldersArrayRequest.results,
+                            ]) ||
+                        results;
+                } else {
+                    folders = [];
+                }
             } while (folders.length !== 0);
 
-            console.log('final', results);
             return results || [];
         } catch (err) {
             console.log(err);

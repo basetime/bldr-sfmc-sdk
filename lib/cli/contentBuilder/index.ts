@@ -1,3 +1,4 @@
+import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
 import { SFMC_Client } from '../types/sfmc_client';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/FormatContentBuilderAsset';
@@ -242,36 +243,55 @@ export class ContentBuilder {
                 categoryId: request.categoryId,
             });
 
-            const buildFolderPaths = await buildFolderPathsSoap(
-                folderResponse.full
-            );
+            const isolateFolderIds =
+                folderResponse &&
+                folderResponse.down &&
+                folderResponse.down.length &&
+                folderResponse.down
+                    .map(
+                        (folder: SFMC_SOAP_Folder) =>
+                            folder.Name !== rootFolderName && folder.ID
+                    )
+                    .filter(Boolean);
 
-            console.log('folderPaths', {buildFolderPaths})
+            const assetsAndFoldersRequest = await Promise.all([
+                buildFolderPathsSoap(folderResponse.full),
+                this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds),
+            ]);
 
-            // const isolateFolderIds =
-            //     folderResponse &&
-            //     folderResponse.down &&
-            //     folderResponse.down.length &&
-            //     folderResponse.down
-            //         .map(
-            //             (folder: SFMC_SOAP_Folder) =>
-            //                 folder.Name !== rootFolderName && folder.ID
-            //         )
-            //         .filter(Boolean);
+            const buildFolderPaths =
+                assetsAndFoldersRequest && assetsAndFoldersRequest[0] || [];
+            const assetResponse =
+                assetsAndFoldersRequest && assetsAndFoldersRequest[1] || [];
 
-            // const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(
-            //     isolateFolderIds
-            // );
+            if (
+                assetResponse &&
+                assetResponse.response &&
+                assetResponse.response.status &&
+                !assetResponse.response.status.test(/^2/)
+            ) {
+                throw new Error(assetResponse);
+            }
 
-            // if (
-            //     assetResponse &&
-            //     assetResponse.response &&
-            //     assetResponse.response.status &&
-            //     !assetResponse.response.status.test(/^2/)
-            // ) {
-            //     throw new Error(assetResponse);
-            // }
+            const formatResponses = await Promise.all([
+                formatContentBuilderAssets(
+                    assetResponse.items,
+                    buildFolderPaths.folders
+                ),
+                buildFolderPaths.folders.map((folder) => {
+                    return {
+                        id: folder.ID,
+                        name: folder.Name,
+                        parentId: folder.ParentFolder.ID,
+                        folderPath: folder.FolderPath,
+                    };
+                }),
+            ]);
 
+            const formattedAssetResponse = formatResponses && formatResponses[0] || [];
+            const formattedFolders = formatResponses && formatResponses[1] || []
+
+            console.log('format', {formatResponses})
             // const formattedAssetResponse =
             //     (assetResponse &&
             //         assetResponse.items &&
@@ -297,11 +317,11 @@ export class ContentBuilder {
             //         })) ||
             //     [];
 
-            // return {
-            //     folders: formattedFolders || [],
-            //     assets: formattedAssetResponse || [],
-            //     rawAssets: assetResponse.items || [],
-            // };
+            return {
+                folders: formattedFolders || [],
+                assets: formattedAssetResponse || [],
+                rawAssets: assetResponse.items || [],
+            };
         } catch (err: any) {
             return err;
         }
