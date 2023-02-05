@@ -291,7 +291,6 @@ export class ContentBuilder {
             const formattedAssetResponse = formatResponses && formatResponses[0] || [];
             const formattedFolders = formatResponses && formatResponses[1] || []
 
-            console.log('format', {formatResponses})
             // const formattedAssetResponse =
             //     (assetResponse &&
             //         assetResponse.items &&

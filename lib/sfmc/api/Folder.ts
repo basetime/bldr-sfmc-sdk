@@ -174,8 +174,10 @@ export class Folder {
                 throw new Error('Unable to Retrieve Folders');
             }
 
-            const responseResults = response.Results;
-            results.push(...responseResults);
+            const responseResults = response.Results || [];
+            responseResults &&
+                responseResults.length &&
+                results.push(...responseResults);
             return results;
         } catch (err: any) {
             return err;
@@ -371,7 +373,7 @@ export class Folder {
                         if (
                             subfolderRequest &&
                             Array.isArray(subfolderRequest) &&
-                            subfolderRequest.length > 0
+                            subfolderRequest.length
                         ) {
                             let subfolderIdArray = subfolderRequest.map(
                                 (folder: { ID: number }) => folder.ID
@@ -384,17 +386,32 @@ export class Folder {
                             };
                         } else {
                             return {
-                                categoryId: null,
-                                subfolderIdArray: [],
-                                subfolderRequest: [],
+                                categoryId: categoryId || null,
+                                subfolderIdArray: subfolderRequest || [],
+                                subfolderRequest: subfolderRequest || [],
                             };
                         }
                     })
                 ).then((response: any) => {
+                    console.log('length', response.length);
+                    console.log(
+                        'FOLDER RESP',
+                        JSON.stringify(response, null, 2)
+                    );
+
+                    const foldersMap = response
+                        .map((res: any) => [...res.subfolderIdArray])
+                        .flat();
+
+
+                    const resultsMap = response
+                    .map((res: any) => [...res.subfolderRequest])
+                    .flat();
+
                     return (
                         (response && {
-                            folderIds: [...response[0].subfolderIdArray] || [],
-                            results: [...response[0].subfolderRequest] || [],
+                            folderIds: foldersMap || [],
+                            results: resultsMap || [],
                         }) ||
                         null
                     );

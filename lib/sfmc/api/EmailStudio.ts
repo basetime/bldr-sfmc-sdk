@@ -2,6 +2,7 @@ import { guid } from '../../cli/utils';
 import { buildFolderPathsSoap } from '../../cli/utils/BuildSoapFolderObjects';
 import { FieldTypes } from '../types/objects/sfmc_data_extension_assets';
 import { Client } from '../types/sfmc_client';
+import { chunk } from '../utils/chunkArray';
 import { handleError } from '../utils/handleError';
 import { capitalizeKeys, lowercaseKeys } from '../utils/modifyObject';
 const { getProperties } = require('sfmc-soap-object-reference');
@@ -185,37 +186,47 @@ export class EmailStudio {
     };
 
     getAssetsByFolderArray = async (folderIdArray: number[]) => {
-        let requestFilter = {};
+        try {
+        const chunkedArrays = await chunk(folderIdArray, 6);
 
-        if (folderIdArray.length === 1) {
-            requestFilter = {
-                filter: {
-                    leftOperand: 'CategoryID',
-                    operator: 'equals',
-                    rightOperand: folderIdArray[0],
-                },
-            };
-        } else {
-            requestFilter = {
-                filter: {
-                    leftOperand: 'CategoryID',
-                    operator: 'IN',
-                    rightOperand: folderIdArray,
-                },
-            };
-        }
-
-        const dataExtensionResponse = await this.client.soap.retrieve(
-            'DataExtension',
-            dataExtensionDefinition,
-            requestFilter
+        const dataExtensionRequest = await Promise.all(
+            chunkedArrays.map((assetArray) => {
+                return this.client.soap.retrieve(
+                    'DataExtension',
+                    dataExtensionDefinition,
+                    {
+                        filter: {
+                            leftOperand: 'CategoryID',
+                            operator: assetArray && assetArray.length > 1 ? 'IN' : 'equals',
+                            rightOperand: assetArray && assetArray.length > 1 ? assetArray : assetArray[0],
+                        },
+                    }
+                );
+            })
         );
 
-        if (dataExtensionResponse.OverallStatus !== 'OK') {
-            throw new Error(dataExtensionResponse.OverallStatus);
-        }
+        const overallStatusArray =
+            dataExtensionRequest &&
+            dataExtensionRequest.map((request) => request.OverallStatus);
 
-        return dataExtensionResponse;
+        const resultsArray =
+            dataExtensionRequest &&
+            dataExtensionRequest.map((request) => request.Results).flat();
+
+        const output = {
+            OverallStatus:
+                overallStatusArray &&
+                overallStatusArray.every((status) => status === 'OK')
+                    ? 'OK'
+                    : overallStatusArray,
+            Results: resultsArray
+        };
+
+
+        return output;
+        } catch (err: any){
+            return err
+        }
     };
 
     /**
