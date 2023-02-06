@@ -182,13 +182,10 @@ export class EmailStudio {
             const rootParentName = shared
                 ? 'Shared Data Extensions'
                 : 'Data Extensions';
+
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
-
-            const buildFolderPaths =
-                folderResponse &&
-                (await buildFolderPathsSoap(folderResponse.full));
 
             const isolateFolderIds =
                 (folderResponse &&
@@ -202,29 +199,40 @@ export class EmailStudio {
                         .filter(Boolean)) ||
                 [];
 
+            const assetsAndFoldersRequest = await Promise.all([
+                buildFolderPathsSoap(folderResponse.full),
+                this.sfmc.emailStudio.getAssetsByFolderArray(isolateFolderIds),
+            ]);
+
+            const buildFolderPaths =
+                (assetsAndFoldersRequest && assetsAndFoldersRequest[0]) || [];
             const assetResponse =
-                isolateFolderIds &&
-                isolateFolderIds.length &&
-                (await this.sfmc.emailStudio.getAssetsByFolderArray(
-                    isolateFolderIds
-                ));
+                (assetsAndFoldersRequest && assetsAndFoldersRequest[1]) || [];
 
-            const formattedAssetResponse: any[] = [];
-            const dataExtensions =
-                (assetResponse && assetResponse.Results) || [];
+            let dataExtensionsResults =
+                assetResponse &&
+                assetResponse.Results &&
+                assetResponse.Results.length
+                    ? assetResponse.Results
+                    : [];
 
-            if (dataExtensions && dataExtensions.length) {
-                for (const a in dataExtensions) {
-                    const dataExtension: { Name: string } = dataExtensions[a];
-                    const dataExtensionPayload =
-                        dataExtension &&
-                        (await this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(
-                            dataExtension.Name,
-                            complete,
-                            shared
-                        ));
-                    formattedAssetResponse.push(dataExtensionPayload);
-                }
+            let formattedAssets;
+            if (dataExtensionsResults && dataExtensionsResults.length) {
+                dataExtensionsResults = dataExtensionsResults.filter(Boolean);
+                formattedAssets =
+                    (await Promise.all(
+                        dataExtensionsResults.map(
+                            (dataExtension: { Name: String }) => {
+                                if (!dataExtension.Name) return;
+
+                                return this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(
+                                    dataExtension.Name,
+                                    complete,
+                                    shared
+                                );
+                            }
+                        )
+                    )) || [];
             }
 
             const formattedFolders =
@@ -242,7 +250,7 @@ export class EmailStudio {
 
             return {
                 folders: formattedFolders || [],
-                assets: formattedAssetResponse || [],
+                assets: formattedAssets || [],
             };
         } catch (err: any) {
             return err;

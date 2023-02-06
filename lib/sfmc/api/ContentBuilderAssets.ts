@@ -1,5 +1,7 @@
 import { Client } from '../types/sfmc_client';
+import { chunk } from '../utils/chunkArray';
 import { handleError } from '../utils/handleError';
+import { concatByKey, sumByKey } from '../utils/sumByKeys';
 
 export class ContentBuilderAsset {
     client;
@@ -62,26 +64,38 @@ export class ContentBuilderAsset {
             if (!Array.isArray(folderIdArray)) {
                 throw new Error('folderIdArray argument must be an array');
             }
+            const chunkedArrays = await chunk(folderIdArray, 6);
+            const assetRequests = await Promise.all(
+                chunkedArrays.map(async (assetArray) => {
+                    return this.client.rest.post(
+                        '/asset/v1/content/assets/query',
+                        {
+                            page: {
+                                page: 1,
+                                pageSize: 200,
+                            },
+                            query: {
+                                property: 'category.id',
+                                simpleOperator: 'in',
+                                value: assetArray,
+                            },
+                            sort: [
+                                {
+                                    property: 'id',
+                                    direction: 'ASC',
+                                },
+                            ],
+                        }
+                    );
+                })
+            );
 
-            return this.client.rest.post('/asset/v1/content/assets/query', {
-                page: {
-                    page: 1,
-                    pageSize: 200,
-                },
-                query: {
-                    property: 'category.id',
-                    simpleOperator: 'in',
-                    value: folderIdArray,
-                },
-                sort: [
-                    {
-                        property: 'id',
-                        direction: 'ASC',
-                    },
-                ],
-            });
+            return {
+                count: sumByKey(assetRequests, 'count'),
+                items: concatByKey(assetRequests, 'items'),
+            };
         } catch (err: any) {
-            return handleError(err);
+            return err;
         }
     }
 
