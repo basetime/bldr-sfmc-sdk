@@ -344,7 +344,7 @@ export class Folder {
                 parentId: folders[0],
             });
 
-            console.log('subfolderRequest', subfolderRequest);
+            console.log('subfolderRequest test', subfolderRequest);
 
             if (
                 subfolderRequest &&
@@ -370,6 +370,11 @@ export class Folder {
                             parentId: categoryId,
                         });
 
+                        console.log('subfolderRequest test while', subfolderRequest);
+                        console.log( subfolderRequest &&
+                            Array.isArray(subfolderRequest) &&
+                            subfolderRequest.length)
+
                         if (
                             subfolderRequest &&
                             Array.isArray(subfolderRequest) &&
@@ -380,9 +385,9 @@ export class Folder {
                             );
 
                             return {
-                                categoryId: categoryId || null,
-                                subfolderIdArray: subfolderIdArray || null,
-                                subfolderRequest: subfolderRequest || null,
+                                categoryId: categoryId,
+                                subfolderIdArray: subfolderIdArray,
+                                subfolderRequest: subfolderRequest,
                             };
                         } else {
                             return {
@@ -403,42 +408,47 @@ export class Folder {
                         .map((res: any) => [...res.subfolderIdArray])
                         .flat();
 
+                    console.log('return map', {foldersMap});
 
                     const resultsMap = response
-                    .map((res: any) => [...res.subfolderRequest])
-                    .flat();
+                        .map((res: any) => [...res.subfolderRequest])
+                        .flat();
 
-                    return (
-                        (response && {
-                            folderIds: foldersMap || [],
-                            results: resultsMap || [],
-                        }) ||
-                        null
-                    );
+                    return {
+                        folderIds: foldersMap || [],
+                        results: resultsMap || [],
+                    };
                 });
 
+
+                console.log('subfoldersArrayRequest', subfoldersArrayRequest)
                 if (
                     subfoldersArrayRequest &&
                     subfoldersArrayRequest.folderIds &&
                     subfoldersArrayRequest.folderIds.length
                 ) {
-                    folders = subfoldersArrayRequest.folderIds || [];
+                    folders = []
+                    folders = subfoldersArrayRequest.folderIds;
                     results =
                         (subfoldersArrayRequest.results &&
                             subfoldersArrayRequest.results.length && [
                                 ...results,
                                 ...subfoldersArrayRequest.results,
-                            ]) ||
-                        results;
+                            ])
+                            console.log('updating results length', results.length)
+
+                    console.log('updating results', results)
                 } else {
                     folders = [];
                 }
             } while (folders.length !== 0);
 
-            return results || [];
+            console.log('FINAL RESULTS', results.length)
+            console.log('FINAL RESULTS', results.sort((a: any,b: any)=> b.ID - a.ID)  )
+            return results.sort((a: any,b: any)=> b.ID - a.ID);
         } catch (err) {
             console.log(err);
-            return handleError(err);
+            return err;
         }
     }
     /**

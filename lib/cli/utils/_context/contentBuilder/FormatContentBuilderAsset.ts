@@ -36,11 +36,16 @@ const setAssetPostObject = (
             folder.ParentFolder.ID === asset.category.id
     );
 
+    console.log('find folder obj', findAssetsFolderObject)
+    if(!findAssetsFolderObject){
+        console.log({folders})
+    }
     // Set Assets folderPath or initiate as blank
     const folderPath = findAssetsFolderObject
         ? findAssetsFolderObject.FolderPath
         : '';
 
+        console.log({folderPath})
     // Create JSON structure for new asset post
     let post: BLDR_SFMC_Content_Builder_Asset = {
         id: asset.id,

@@ -55,6 +55,8 @@ export class ContentBuilder {
 
         const formattedResponse =
             (response &&
+                response.Results &&
+                response.Results.length &&
                 response.Results.map(
                     (folder: {
                         Name: string;
@@ -243,16 +245,19 @@ export class ContentBuilder {
                 categoryId: request.categoryId,
             });
 
+            console.log('initial folderResponse', JSON.stringify(folderResponse, null,2))
             const isolateFolderIds =
                 folderResponse &&
-                folderResponse.down &&
-                folderResponse.down.length &&
-                folderResponse.down
+                folderResponse.full &&
+                folderResponse.full.length &&
+                folderResponse.full
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
                             folder.Name !== rootFolderName && folder.ID
                     )
                     .filter(Boolean);
+
+                    console.log('full folder paths', folderResponse.full)
 
             const assetsAndFoldersRequest = await Promise.all([
                 buildFolderPathsSoap(folderResponse.full),
@@ -260,9 +265,11 @@ export class ContentBuilder {
             ]);
 
             const buildFolderPaths =
-                assetsAndFoldersRequest && assetsAndFoldersRequest[0] || [];
+                (assetsAndFoldersRequest && assetsAndFoldersRequest[0]) || [];
             const assetResponse =
-                assetsAndFoldersRequest && assetsAndFoldersRequest[1] || [];
+                (assetsAndFoldersRequest && assetsAndFoldersRequest[1]) || [];
+
+            console.log('buildFolderPaths', JSON.stringify(buildFolderPaths, null, 2))
 
             if (
                 assetResponse &&
@@ -288,8 +295,10 @@ export class ContentBuilder {
                 }),
             ]);
 
-            const formattedAssetResponse = formatResponses && formatResponses[0] || [];
-            const formattedFolders = formatResponses && formatResponses[1] || []
+            const formattedAssetResponse =
+                (formatResponses && formatResponses[0]) || [];
+            const formattedFolders =
+                (formatResponses && formatResponses[1]) || [];
 
             // const formattedAssetResponse =
             //     (assetResponse &&
