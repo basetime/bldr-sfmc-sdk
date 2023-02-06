@@ -337,14 +337,10 @@ export class Folder {
                 results = [...results, ...rootRequest.Results];
             }
 
-            console.log('folders start', folders);
-
             let subfolderRequest = await this.getSubfolders({
                 contentType: request.contentType,
                 parentId: folders[0],
             });
-
-            console.log('subfolderRequest test', subfolderRequest);
 
             if (
                 subfolderRequest &&
@@ -370,11 +366,6 @@ export class Folder {
                             parentId: categoryId,
                         });
 
-                        console.log('subfolderRequest test while', subfolderRequest);
-                        console.log( subfolderRequest &&
-                            Array.isArray(subfolderRequest) &&
-                            subfolderRequest.length)
-
                         if (
                             subfolderRequest &&
                             Array.isArray(subfolderRequest) &&
@@ -398,17 +389,10 @@ export class Folder {
                         }
                     })
                 ).then((response: any) => {
-                    console.log('length', response.length);
-                    console.log(
-                        'FOLDER RESP',
-                        JSON.stringify(response, null, 2)
-                    );
 
                     const foldersMap = response
                         .map((res: any) => [...res.subfolderIdArray])
                         .flat();
-
-                    console.log('return map', {foldersMap});
 
                     const resultsMap = response
                         .map((res: any) => [...res.subfolderRequest])
@@ -420,8 +404,6 @@ export class Folder {
                     };
                 });
 
-
-                console.log('subfoldersArrayRequest', subfoldersArrayRequest)
                 if (
                     subfoldersArrayRequest &&
                     subfoldersArrayRequest.folderIds &&
@@ -435,19 +417,13 @@ export class Folder {
                                 ...results,
                                 ...subfoldersArrayRequest.results,
                             ])
-                            console.log('updating results length', results.length)
-
-                    console.log('updating results', results)
                 } else {
                     folders = [];
                 }
             } while (folders.length !== 0);
 
-            console.log('FINAL RESULTS', results.length)
-            console.log('FINAL RESULTS', results.sort((a: any,b: any)=> b.ID - a.ID)  )
             return results.sort((a: any,b: any)=> b.ID - a.ID);
         } catch (err) {
-            console.log(err);
             return err;
         }
     }
@@ -471,7 +447,7 @@ export class Folder {
             down,
             full: [
                 ...new Map(
-                    [...up.results, ...down].map((item) => [item['Name'], item])
+                    [...up.results, ...down].map((item) => [item['ID'], item])
                 ).values(),
             ],
         };

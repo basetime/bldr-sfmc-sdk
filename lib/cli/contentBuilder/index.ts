@@ -245,7 +245,6 @@ export class ContentBuilder {
                 categoryId: request.categoryId,
             });
 
-            console.log('initial folderResponse', JSON.stringify(folderResponse, null,2))
             const isolateFolderIds =
                 folderResponse &&
                 folderResponse.full &&
@@ -257,8 +256,6 @@ export class ContentBuilder {
                     )
                     .filter(Boolean);
 
-                    console.log('full folder paths', folderResponse.full)
-
             const assetsAndFoldersRequest = await Promise.all([
                 buildFolderPathsSoap(folderResponse.full),
                 this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds),
@@ -268,8 +265,6 @@ export class ContentBuilder {
                 (assetsAndFoldersRequest && assetsAndFoldersRequest[0]) || [];
             const assetResponse =
                 (assetsAndFoldersRequest && assetsAndFoldersRequest[1]) || [];
-
-            console.log('buildFolderPaths', JSON.stringify(buildFolderPaths, null, 2))
 
             if (
                 assetResponse &&
