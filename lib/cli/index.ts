@@ -1,7 +1,7 @@
 import { AutomationStudio } from './automationStudio';
 import { ContentBuilder } from './contentBuilder';
 import { EmailStudio } from './emailStudio';
-import { Helpers } from './helpers';
+
 import { CLI_Client } from './types/cli_client';
 
 /**
