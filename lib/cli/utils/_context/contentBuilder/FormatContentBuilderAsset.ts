@@ -100,19 +100,14 @@ const formatContentBuilderAssets = async (
     results: SFMC_Content_Builder_Asset,
     folders: BLDR_Folder[]
 ) => {
-    const formattedAssets = [];
     if (Array.isArray(results) && results.length !== 0) {
-        for (const r in results) {
-            const asset = results[r];
-            const post = setAssetPostObject(asset, folders);
-            formattedAssets.push(post);
-        }
+        const formatAllResults = await Promise.all(
+            results.map((result) => setAssetPostObject(result, folders))
+        );
+        return formatAllResults;
     } else {
-        const post = setAssetPostObject(results, folders);
-        formattedAssets.push(post);
+        return setAssetPostObject(results, folders);
     }
-
-    return formattedAssets;
 };
 
 export { formatContentBuilderAssets };

@@ -55,6 +55,8 @@ export class ContentBuilder {
 
         const formattedResponse =
             (response &&
+                response.Results &&
+                response.Results.length &&
                 response.Results.map(
                     (folder: {
                         Name: string;
@@ -237,28 +239,32 @@ export class ContentBuilder {
             const rootFolderName = shared
                 ? 'Shared Content'
                 : 'Content Builder';
+
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle({
                 contentType: shared ? 'asset-shared' : 'asset',
                 categoryId: request.categoryId,
             });
 
-            const buildFolderPaths = await buildFolderPathsSoap(
-                folderResponse.full
-            );
             const isolateFolderIds =
                 folderResponse &&
-                folderResponse.down &&
-                folderResponse.down.length &&
-                folderResponse.down
+                folderResponse.full &&
+                folderResponse.full.length &&
+                folderResponse.full
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
                             folder.Name !== rootFolderName && folder.ID
                     )
                     .filter(Boolean);
 
-            const assetResponse = await this.sfmc.asset.getAssetsByFolderArray(
-                isolateFolderIds
-            );
+            const assetsAndFoldersRequest = await Promise.all([
+                buildFolderPathsSoap(folderResponse.full),
+                this.sfmc.asset.getAssetsByFolderArray(isolateFolderIds),
+            ]);
+
+            const buildFolderPaths =
+                (assetsAndFoldersRequest && assetsAndFoldersRequest[0]) || [];
+            const assetResponse =
+                (assetsAndFoldersRequest && assetsAndFoldersRequest[1]) || [];
 
             if (
                 assetResponse &&
@@ -269,30 +275,50 @@ export class ContentBuilder {
                 throw new Error(assetResponse);
             }
 
-            const formattedAssetResponse =
-                (assetResponse &&
-                    assetResponse.items &&
-                    assetResponse.items.length &&
-                    buildFolderPaths &&
-                    buildFolderPaths.folders &&
-                    (await formatContentBuilderAssets(
-                        assetResponse.items,
-                        buildFolderPaths.folders
-                    ))) ||
-                [];
+            const formatResponses = await Promise.all([
+                formatContentBuilderAssets(
+                    assetResponse.items,
+                    buildFolderPaths.folders
+                ),
+                buildFolderPaths.folders.map((folder) => {
+                    return {
+                        id: folder.ID,
+                        name: folder.Name,
+                        parentId: folder.ParentFolder.ID,
+                        folderPath: folder.FolderPath,
+                    };
+                }),
+            ]);
 
+            const formattedAssetResponse =
+                (formatResponses && formatResponses[0]) || [];
             const formattedFolders =
-                (buildFolderPaths.folders &&
-                    buildFolderPaths.folders.length &&
-                    buildFolderPaths.folders.map((folder) => {
-                        return {
-                            id: folder.ID,
-                            name: folder.Name,
-                            parentId: folder.ParentFolder.ID,
-                            folderPath: folder.FolderPath,
-                        };
-                    })) ||
-                [];
+                (formatResponses && formatResponses[1]) || [];
+
+            // const formattedAssetResponse =
+            //     (assetResponse &&
+            //         assetResponse.items &&
+            //         assetResponse.items.length &&
+            //         buildFolderPaths &&
+            //         buildFolderPaths.folders &&
+            //         (await formatContentBuilderAssets(
+            //             assetResponse.items,
+            //             buildFolderPaths.folders
+            //         ))) ||
+            //     [];
+
+            // const formattedFolders =
+            //     (buildFolderPaths.folders &&
+            //         buildFolderPaths.folders.length &&
+            //         buildFolderPaths.folders.map((folder) => {
+            //             return {
+            //                 id: folder.ID,
+            //                 name: folder.Name,
+            //                 parentId: folder.ParentFolder.ID,
+            //                 folderPath: folder.FolderPath,
+            //             };
+            //         })) ||
+            //     [];
 
             return {
                 folders: formattedFolders || [],

@@ -174,8 +174,10 @@ export class Folder {
                 throw new Error('Unable to Retrieve Folders');
             }
 
-            const responseResults = response.Results;
-            results.push(...responseResults);
+            const responseResults = response.Results || [];
+            responseResults &&
+                responseResults.length &&
+                results.push(...responseResults);
             return results;
         } catch (err: any) {
             return err;
@@ -312,57 +314,76 @@ export class Folder {
         categoryId: number;
     }) {
         try {
-            let folders: number[] = [];
+            let folders: number[] = [request.categoryId];
             let results: any[] = [];
-
-            // Get target folder from SFMC
-            let rootRequest = await this.getFolder(request);
-
-            // Ensure response has results
-            if (!Object.prototype.hasOwnProperty.call(rootRequest, 'Results')) {
-                throw new Error(`Unable to find folder`);
-            }
-
-            if (
-                rootRequest &&
-                rootRequest.Results &&
-                rootRequest.Results.length
-            ) {
-                const rootIdArray = rootRequest.Results.map(
-                    (folder) => folder.ID
-                );
-                folders.push(...rootIdArray);
-                results = [...results, ...rootRequest.Results];
-            }
 
             // Recursively get folders from SFMC
             do {
-                let categoryId = folders[0];
-                // SFMC Folder response checking for subfolders
-                let subfolderRequest = await this.getSubfolders({
-                    contentType: request.contentType,
-                    parentId: categoryId,
+                const subfoldersArrayRequest = await Promise.all(
+                    folders.map(async (categoryId: number) => {
+                        // SFMC Folder response checking for subfolders
+                        let subfolderRequest = await this.getSubfolders({
+                            contentType: request.contentType,
+                            parentId: categoryId,
+                        });
+
+                        if (
+                            subfolderRequest &&
+                            Array.isArray(subfolderRequest) &&
+                            subfolderRequest.length
+                        ) {
+                            let subfolderIdArray = subfolderRequest.map(
+                                (folder: { ID: number }) => folder.ID
+                            );
+
+                            return {
+                                categoryId: categoryId,
+                                subfolderIdArray: subfolderIdArray,
+                                subfolderRequest: subfolderRequest,
+                            };
+                        } else {
+                            return {
+                                categoryId: categoryId || null,
+                                subfolderIdArray: subfolderRequest || [],
+                                subfolderRequest: subfolderRequest || [],
+                            };
+                        }
+                    })
+                ).then((response: any) => {
+                    const foldersMap = response
+                        .map((res: any) => [...res.subfolderIdArray])
+                        .flat();
+
+                    const resultsMap = response
+                        .map((res: any) => [...res.subfolderRequest])
+                        .flat();
+
+                    return {
+                        folderIds: foldersMap || [],
+                        results: resultsMap || [],
+                    };
                 });
 
                 if (
-                    subfolderRequest &&
-                    Array.isArray(subfolderRequest) &&
-                    subfolderRequest.length > 0
+                    subfoldersArrayRequest &&
+                    subfoldersArrayRequest.folderIds &&
+                    subfoldersArrayRequest.folderIds.length
                 ) {
-                    let subfolderIdArray = subfolderRequest.map(
-                        (folder: { ID: number }) => folder.ID
-                    );
-                    folders.push(...subfolderIdArray);
-                    results = [...results, ...subfolderRequest];
+                    folders = [];
+                    folders = subfoldersArrayRequest.folderIds;
+                    results = subfoldersArrayRequest.results &&
+                        subfoldersArrayRequest.results.length && [
+                            ...results,
+                            ...subfoldersArrayRequest.results,
+                        ];
+                } else {
+                    folders = [];
                 }
-
-                folders.shift();
             } while (folders.length !== 0);
 
-            return results || [];
+            return results.sort((a: any, b: any) => b.ID - a.ID);
         } catch (err) {
-            console.log(err);
-            return handleError(err);
+            return err;
         }
     }
     /**
@@ -385,7 +406,7 @@ export class Folder {
             down,
             full: [
                 ...new Map(
-                    [...up.results, ...down].map((item) => [item['Name'], item])
+                    [...up.results, ...down].map((item) => [item['ID'], item])
                 ).values(),
             ],
         };
