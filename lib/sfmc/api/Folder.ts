@@ -314,47 +314,8 @@ export class Folder {
         categoryId: number;
     }) {
         try {
-            let folders: number[] = [];
+            let folders: number[] = [request.categoryId];
             let results: any[] = [];
-
-            // Get target folder from SFMC
-            let rootRequest = await this.getFolder(request);
-
-            // Ensure response has results
-            if (!Object.prototype.hasOwnProperty.call(rootRequest, 'Results')) {
-                throw new Error(`Unable to find folder`);
-            }
-
-            if (
-                rootRequest &&
-                rootRequest.Results &&
-                rootRequest.Results.length
-            ) {
-                const rootIdArray = rootRequest.Results.map(
-                    (folder) => folder.ID
-                );
-                folders.push(...rootIdArray);
-                results = [...results, ...rootRequest.Results];
-            }
-
-            let subfolderRequest = await this.getSubfolders({
-                contentType: request.contentType,
-                parentId: folders[0],
-            });
-
-            if (
-                subfolderRequest &&
-                Array.isArray(subfolderRequest) &&
-                subfolderRequest.length > 0
-            ) {
-                let subfolderIdArray = subfolderRequest.map(
-                    (folder: { ID: number }) => folder.ID
-                );
-
-                folders.push(...subfolderIdArray);
-                results = [...results, ...subfolderRequest];
-                results.shift();
-            }
 
             // Recursively get folders from SFMC
             do {
