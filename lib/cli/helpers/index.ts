@@ -43,11 +43,12 @@ export class Helpers {
                 )
                 .flat();
 
-        const uniqueMappedResponse = initialFlatMap && initialFlatMap.length && [
-            ...new Map(
-                initialFlatMap.map((item) => [item[mapKey], item])
-            ).values(),
-        ];
+        const uniqueMappedResponse = initialFlatMap &&
+            initialFlatMap.length && [
+                ...new Map(
+                    initialFlatMap.map((item) => [item[mapKey], item])
+                ).values(),
+            ];
 
         return uniqueMappedResponse || [];
     };

@@ -104,7 +104,7 @@ const formatContentBuilderAssets = async (
         const formatAllResults = await Promise.all(
             results.map((result) => setAssetPostObject(result, folders))
         );
-       return formatAllResults
+        return formatAllResults;
     } else {
         return setAssetPostObject(results, folders);
     }

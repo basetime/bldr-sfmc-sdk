@@ -1,7 +1,7 @@
 export interface CLI_Client {
     _helpers: {
         formatPromiseAllResponse: Function;
-    }
+    };
     contentBuilder: {
         searchFolders: Function;
         searchAssets: Function;

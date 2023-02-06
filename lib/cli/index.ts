@@ -10,7 +10,7 @@ import { CLI_Client } from './types/cli_client';
  * @param {object} AuthObject Auth Object for making requests
  */
 export class CLI implements CLI_Client {
-    _helpers: any
+    _helpers: any;
     contentBuilder: any;
     automationStudio: any;
     emailStudio: any;

@@ -187,45 +187,50 @@ export class EmailStudio {
 
     getAssetsByFolderArray = async (folderIdArray: number[]) => {
         try {
-        const chunkedArrays = await chunk(folderIdArray, 6);
+            const chunkedArrays = await chunk(folderIdArray, 6);
 
-        const dataExtensionRequest = await Promise.all(
-            chunkedArrays.map((assetArray) => {
-                return this.client.soap.retrieve(
-                    'DataExtension',
-                    dataExtensionDefinition,
-                    {
-                        filter: {
-                            leftOperand: 'CategoryID',
-                            operator: assetArray && assetArray.length > 1 ? 'IN' : 'equals',
-                            rightOperand: assetArray && assetArray.length > 1 ? assetArray : assetArray[0],
-                        },
-                    }
-                );
-            })
-        );
+            const dataExtensionRequest = await Promise.all(
+                chunkedArrays.map((assetArray) => {
+                    return this.client.soap.retrieve(
+                        'DataExtension',
+                        dataExtensionDefinition,
+                        {
+                            filter: {
+                                leftOperand: 'CategoryID',
+                                operator:
+                                    assetArray && assetArray.length > 1
+                                        ? 'IN'
+                                        : 'equals',
+                                rightOperand:
+                                    assetArray && assetArray.length > 1
+                                        ? assetArray
+                                        : assetArray[0],
+                            },
+                        }
+                    );
+                })
+            );
 
-        const overallStatusArray =
-            dataExtensionRequest &&
-            dataExtensionRequest.map((request) => request.OverallStatus);
+            const overallStatusArray =
+                dataExtensionRequest &&
+                dataExtensionRequest.map((request) => request.OverallStatus);
 
-        const resultsArray =
-            dataExtensionRequest &&
-            dataExtensionRequest.map((request) => request.Results).flat();
+            const resultsArray =
+                dataExtensionRequest &&
+                dataExtensionRequest.map((request) => request.Results).flat();
 
-        const output = {
-            OverallStatus:
-                overallStatusArray &&
-                overallStatusArray.every((status) => status === 'OK')
-                    ? 'OK'
-                    : overallStatusArray,
-            Results: resultsArray
-        };
+            const output = {
+                OverallStatus:
+                    overallStatusArray &&
+                    overallStatusArray.every((status) => status === 'OK')
+                        ? 'OK'
+                        : overallStatusArray,
+                Results: resultsArray,
+            };
 
-
-        return output;
-        } catch (err: any){
-            return err
+            return output;
+        } catch (err: any) {
+            return err;
         }
     };
 

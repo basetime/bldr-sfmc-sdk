@@ -350,7 +350,6 @@ export class Folder {
                         }
                     })
                 ).then((response: any) => {
-
                     const foldersMap = response
                         .map((res: any) => [...res.subfolderIdArray])
                         .flat();
@@ -370,20 +369,19 @@ export class Folder {
                     subfoldersArrayRequest.folderIds &&
                     subfoldersArrayRequest.folderIds.length
                 ) {
-                    folders = []
+                    folders = [];
                     folders = subfoldersArrayRequest.folderIds;
-                    results =
-                        (subfoldersArrayRequest.results &&
-                            subfoldersArrayRequest.results.length && [
-                                ...results,
-                                ...subfoldersArrayRequest.results,
-                            ])
+                    results = subfoldersArrayRequest.results &&
+                        subfoldersArrayRequest.results.length && [
+                            ...results,
+                            ...subfoldersArrayRequest.results,
+                        ];
                 } else {
                     folders = [];
                 }
             } while (folders.length !== 0);
 
-            return results.sort((a: any,b: any)=> b.ID - a.ID);
+            return results.sort((a: any, b: any) => b.ID - a.ID);
         } catch (err) {
             return err;
         }

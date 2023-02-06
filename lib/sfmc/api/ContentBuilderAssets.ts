@@ -65,31 +65,35 @@ export class ContentBuilderAsset {
                 throw new Error('folderIdArray argument must be an array');
             }
             const chunkedArrays = await chunk(folderIdArray, 6);
-            const assetRequests = await Promise.all(chunkedArrays.map(async assetArray => {
-                return this.client.rest.post('/asset/v1/content/assets/query', {
-                    page: {
-                        page: 1,
-                        pageSize: 200,
-                    },
-                    query: {
-                        property: 'category.id',
-                        simpleOperator: 'in',
-                        value: assetArray,
-                    },
-                    sort: [
+            const assetRequests = await Promise.all(
+                chunkedArrays.map(async (assetArray) => {
+                    return this.client.rest.post(
+                        '/asset/v1/content/assets/query',
                         {
-                            property: 'id',
-                            direction: 'ASC',
-                        },
-                    ],
-                });
-            }))
+                            page: {
+                                page: 1,
+                                pageSize: 200,
+                            },
+                            query: {
+                                property: 'category.id',
+                                simpleOperator: 'in',
+                                value: assetArray,
+                            },
+                            sort: [
+                                {
+                                    property: 'id',
+                                    direction: 'ASC',
+                                },
+                            ],
+                        }
+                    );
+                })
+            );
 
             return {
                 count: sumByKey(assetRequests, 'count'),
-                items: concatByKey(assetRequests, 'items')
-            }
-
+                items: concatByKey(assetRequests, 'items'),
+            };
         } catch (err: any) {
             return err;
         }
