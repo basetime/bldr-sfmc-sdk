@@ -5,7 +5,7 @@ import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/For
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
     getAssetDependency,
-    setUpdatedPackageAssetContent,
+    setUpdatedPackageAssetContent
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
@@ -294,31 +294,6 @@ export class ContentBuilder {
                 (formatResponses && formatResponses[0]) || [];
             const formattedFolders =
                 (formatResponses && formatResponses[1]) || [];
-
-            // const formattedAssetResponse =
-            //     (assetResponse &&
-            //         assetResponse.items &&
-            //         assetResponse.items.length &&
-            //         buildFolderPaths &&
-            //         buildFolderPaths.folders &&
-            //         (await formatContentBuilderAssets(
-            //             assetResponse.items,
-            //             buildFolderPaths.folders
-            //         ))) ||
-            //     [];
-
-            // const formattedFolders =
-            //     (buildFolderPaths.folders &&
-            //         buildFolderPaths.folders.length &&
-            //         buildFolderPaths.folders.map((folder) => {
-            //             return {
-            //                 id: folder.ID,
-            //                 name: folder.Name,
-            //                 parentId: folder.ParentFolder.ID,
-            //                 folderPath: folder.FolderPath,
-            //             };
-            //         })) ||
-            //     [];
 
             return {
                 folders: formattedFolders || [],
