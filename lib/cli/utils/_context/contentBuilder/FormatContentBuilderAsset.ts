@@ -25,7 +25,6 @@ const setAssetPostObject = (
     asset: SFMC_Content_Builder_Asset,
     folders: BLDR_Folder[]
 ) => {
-    console.log({ asset });
     // Generate new bldrId for asset
     const bldrId = guid();
 
