@@ -1,6 +1,7 @@
 import { AutomationStudio } from './automationStudio';
 import { ContentBuilder } from './contentBuilder';
 import { EmailStudio } from './emailStudio';
+
 import { CLI_Client } from './types/cli_client';
 
 /**
@@ -9,11 +10,13 @@ import { CLI_Client } from './types/cli_client';
  * @param {object} AuthObject Auth Object for making requests
  */
 export class CLI implements CLI_Client {
+    _helpers: any;
     contentBuilder: any;
     automationStudio: any;
     emailStudio: any;
 
     constructor(sfmc: any) {
+        this._helpers = new Helpers();
         this.contentBuilder = new ContentBuilder(sfmc);
         this.automationStudio = new AutomationStudio(sfmc, this.contentBuilder);
         this.emailStudio = new EmailStudio(sfmc);
