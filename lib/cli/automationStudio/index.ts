@@ -182,9 +182,9 @@ export class AutomationStudio {
             );
             const isolateFolderIds =
                 folderResponse &&
-                folderResponse.down &&
-                folderResponse.down.length &&
-                folderResponse.down
+                folderResponse.full &&
+                folderResponse.full.length &&
+                folderResponse.full
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
                             folder.Name !== 'my automations' && folder.ID

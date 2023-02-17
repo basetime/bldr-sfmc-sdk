@@ -5,7 +5,7 @@ import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/For
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
     getAssetDependency,
-    setUpdatedPackageAssetContent
+    setUpdatedPackageAssetContent,
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 
@@ -266,13 +266,24 @@ export class ContentBuilder {
             const assetResponse =
                 (assetsAndFoldersRequest && assetsAndFoldersRequest[1]) || [];
 
+            console.log({ assetResponse });
             if (
                 assetResponse &&
                 assetResponse.response &&
                 assetResponse.response.status &&
-                !assetResponse.response.status.test(/^2/)
+                !/^2/.test(assetResponse.response.status.toString())
             ) {
-                throw new Error(assetResponse);
+                if (
+                    assetResponse.response &&
+                    assetResponse.response.data &&
+                    assetResponse.response.data.message
+                ) {
+                    throw new Error(assetResponse.response.data.message);
+                } else {
+                    throw new Error(
+                        'There is an issue with the request. Check privileges and try again.'
+                    );
+                }
             }
 
             const formatResponses = await Promise.all([
@@ -301,7 +312,10 @@ export class ContentBuilder {
                 rawAssets: assetResponse.items || [],
             };
         } catch (err: any) {
-            return err;
+            return {
+                status: 'error',
+                statusMessage: err.message,
+            };
         }
     };
     /**

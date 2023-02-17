@@ -105,7 +105,9 @@ const formatContentBuilderAssets = async (
             results.map((result) => setAssetPostObject(result, folders))
         );
         return formatAllResults;
-    } else {
+    } else if (Array.isArray(results) && results.length === 0) {
+        return [];
+    } else if (!Array.isArray(results)) {
         return setAssetPostObject(results, folders);
     }
 };
