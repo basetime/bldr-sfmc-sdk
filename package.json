@@ -15,7 +15,8 @@
         "lint:fix": "eslint ./lib --fix .",
         "clean": "npx rimraf dist",
         "updateLink": "npm run clean && npm run build && npm rm @basetime/bldr-sfmc-sdk -g && npm link",
-        "deploy": "npm run format:write && npm run build && npm publish"
+        "deploy": "npm run format:write && npm run build && npm publish",
+        "deploy:beta": "npm run format:write && npm run build && npm publish --tag beta"
     },
     "repository": {
         "type": "git",
