@@ -10,10 +10,12 @@ import { sfmc_context_mapping } from '../../sfmc/utils/sfmcContextMapping';
 export class AutomationStudio {
     sfmc: SFMC_Client;
     contentBuilder: any;
+    emailStudio: any;
 
-    constructor(sfmc: SFMC_Client, contentBuilder: any) {
+    constructor(sfmc: SFMC_Client, contentBuilder: any, emailStudio: any) {
         this.sfmc = sfmc;
         this.contentBuilder = contentBuilder;
+        this.emailStudio = emailStudio;
     }
     /**
      *
@@ -294,6 +296,16 @@ export class AutomationStudio {
             const buildFolderPaths = await buildFolderPathsSoap(
                 simplifiedFolderResponse
             );
+
+            const formattedFolders = buildFolderPaths.folders.map((folder) => {
+                return {
+                    id: folder.ID,
+                    name: folder.Name,
+                    parentId: folder.ParentFolder.ID,
+                    folderPath: folder.FolderPath,
+                };
+            });
+
             const formattedAssetResponse =
                 assetResponse &&
                 buildFolderPaths &&
@@ -301,6 +313,7 @@ export class AutomationStudio {
                     assetResponse,
                     buildFolderPaths.folders
                 ));
+
             const formattedAutomationDefinitions: any =
                 await this.gatherAutomationActivityDefinitions(
                     formattedAssetResponse
@@ -312,11 +325,25 @@ export class AutomationStudio {
                     formattedAutomationDefinitions
                 ));
 
+            console.log({
+                folders: formattedFolders || [],
+                assets: formattedAssetResponse || [],
+                formattedAutomationDefinitions,
+                formattedAutomationDependencies,
+            });
+
             return {
-                formattedAssetResponse,
+                folders: formattedFolders || [],
+                assets: formattedAssetResponse || [],
                 formattedAutomationDefinitions,
                 formattedAutomationDependencies,
             };
+
+            // return {
+            //     formattedAssetResponse,
+            //     formattedAutomationDefinitions,
+            //     formattedAutomationDependencies,
+            // };
         } catch (err: any) {
             return err.message;
         }
@@ -371,32 +398,73 @@ export class AutomationStudio {
         automationDefinitions: any[]
     ) => {
         const formattedAutomationDependencies: {
-            automationStudio?: any[];
-            contentBuilder?: any[];
-            emailStudio?: any[];
-        } = {};
+            automationStudio: any[];
+            contentBuilder: any[];
+            emailStudio: any[];
+        } = {
+            automationStudio: [],
+            contentBuilder: [],
+            emailStudio: [],
+        };
 
         for (const a in automationDefinitions) {
-            const assetType = automationDefinitions[a].assetType;
+            const definition = automationDefinitions[a];
+            const assetType = definition.assetType;
             const assetTypeName = assetType && assetType.name;
 
             switch (assetTypeName) {
                 case 'userinitiatedsend':
-                    formattedAutomationDependencies.contentBuilder = [];
-                    const legacyId =
-                        automationDefinitions[a].Email &&
-                        automationDefinitions[a].Email.ID;
+                    const legacyId = definition.Email && definition.Email.ID;
+
                     const emailAssetResponse =
                         legacyId &&
                         (await this.contentBuilder.gatherAssetById(
                             legacyId,
                             true
                         ));
+
                     emailAssetResponse &&
-                        emailAssetResponse.length &&
+                        emailAssetResponse.assets &&
                         formattedAutomationDependencies.contentBuilder.push(
-                            ...emailAssetResponse
+                            emailAssetResponse
                         );
+                    break;
+                case 'dataextractactivity':
+                    const DECustomerKey = definition.dataFields.find(
+                        (dataField: {
+                            name: string;
+                            type: string;
+                            value: string;
+                        }) => dataField.name === 'DECustomerKey'
+                    );
+                    const customerKey = DECustomerKey && DECustomerKey.value;
+                    let dataExtensionAssetResponse;
+                    dataExtensionAssetResponse =
+                        customerKey &&
+                        (await this.emailStudio.gatherAssetById(
+                            customerKey,
+                            true
+                        ));
+
+                    if (
+                        dataExtensionAssetResponse.status &&
+                        dataExtensionAssetResponse.status === 'error'
+                    ) {
+                        dataExtensionAssetResponse =
+                            customerKey &&
+                            (await this.emailStudio.gatherAssetById(
+                                customerKey,
+                                true,
+                                true
+                            ));
+                    }
+
+                    dataExtensionAssetResponse &&
+                        dataExtensionAssetResponse.assets &&
+                        formattedAutomationDependencies.emailStudio.push(
+                            dataExtensionAssetResponse
+                        );
+
                     break;
             }
         }

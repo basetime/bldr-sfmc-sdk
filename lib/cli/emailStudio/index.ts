@@ -324,7 +324,11 @@ export class EmailStudio {
                 assets: [dataExtensionPayload] || [],
             };
         } catch (err: any) {
-            return err;
+
+            return {
+                status: 'error',
+                statusMessage: err
+            }
         }
     };
 }

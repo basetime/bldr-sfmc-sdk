@@ -16,8 +16,8 @@ export class CLI implements CLI_Client {
 
     constructor(sfmc: any) {
         this.contentBuilder = new ContentBuilder(sfmc);
-        this.automationStudio = new AutomationStudio(sfmc, this.contentBuilder);
         this.emailStudio = new EmailStudio(sfmc);
+        this.automationStudio = new AutomationStudio(sfmc, this.contentBuilder, this.emailStudio);
         // this.dataExtension = new DataExtension(this.client.soap);
         // this.query = new QueryDefinition(this.client.rest, this.client.soap);
     }
