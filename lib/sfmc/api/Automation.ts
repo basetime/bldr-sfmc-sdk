@@ -1,7 +1,7 @@
 import { Client } from '../types/sfmc_client';
-import { handleError } from '../utils/handleError';
-import { automationStudioActivityTypes } from '../utils/automationActivityTypes';
 import { MappingByActivityTypeId } from '../utils/automationActivities';
+import { automationStudioActivityTypes } from '../utils/automationActivityTypes';
+import { handleError } from '../utils/handleError';
 
 const { getProperties } = require('sfmc-soap-object-reference');
 const automationDefinition = getProperties('Automation');
@@ -221,6 +221,7 @@ export class Automation {
                                 await this.getEmailSendDefinitionActivity(
                                     activityObjectId
                                 );
+
                         } else {
                             stepActivity = await this.client.rest.get(
                                 `/automation/v1/${assetType.api}/${activityObjectId}`

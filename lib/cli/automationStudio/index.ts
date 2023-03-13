@@ -1,11 +1,12 @@
+import { Folder } from '../../sfmc/api/Folder';
 import { SFMC_SOAP_Folder } from '../../sfmc/types/objects/sfmc_soap_folders';
+import { MappingByActivityType } from '../../sfmc/utils/automationActivities';
+import { sfmc_context_mapping } from '../../sfmc/utils/sfmcContextMapping';
 import { SFMC_Automation } from '../types/bldr_assets/sfmc_automation';
 import { SFMC_Client } from '../types/sfmc_client';
-import { guid } from '../utils';
+import { guid, uniqueArrayByKey } from '../utils';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatAutomation } from '../utils/_context/automationStudio/FormatAutomationAsset';
-
-import { sfmc_context_mapping } from '../../sfmc/utils/sfmcContextMapping';
 
 export class AutomationStudio {
     sfmc: SFMC_Client;
@@ -182,6 +183,16 @@ export class AutomationStudio {
             const buildFolderPaths = await buildFolderPathsSoap(
                 folderResponse.full
             );
+
+            const formattedFolders = buildFolderPaths.folders.map((folder) => {
+                return {
+                    id: folder.ID,
+                    name: folder.Name,
+                    parentId: folder.ParentFolder.ID,
+                    folderPath: folder.FolderPath,
+                };
+            });
+
             const isolateFolderIds =
                 folderResponse &&
                 folderResponse.full &&
@@ -227,6 +238,7 @@ export class AutomationStudio {
                     assetResponse,
                     buildFolderPaths.folders
                 ));
+
             const formattedAutomationDefinitions: any =
                 await this.gatherAutomationActivityDefinitions(
                     formattedAssetResponse
@@ -238,10 +250,12 @@ export class AutomationStudio {
                 ));
 
             return {
-                formattedAssetResponse,
+                folders: formattedFolders || [],
+                assets: formattedAssetResponse || [],
                 formattedAutomationDefinitions,
                 formattedAutomationDependencies,
             };
+
         } catch (err: any) {
             return err.message;
         }
@@ -325,25 +339,12 @@ export class AutomationStudio {
                     formattedAutomationDefinitions
                 ));
 
-            console.log({
-                folders: formattedFolders || [],
-                assets: formattedAssetResponse || [],
-                formattedAutomationDefinitions,
-                formattedAutomationDependencies,
-            });
-
             return {
                 folders: formattedFolders || [],
                 assets: formattedAssetResponse || [],
                 formattedAutomationDefinitions,
                 formattedAutomationDependencies,
             };
-
-            // return {
-            //     formattedAssetResponse,
-            //     formattedAutomationDefinitions,
-            //     formattedAutomationDependencies,
-            // };
         } catch (err: any) {
             return err.message;
         }
@@ -356,7 +357,9 @@ export class AutomationStudio {
         automations: SFMC_Automation[] | SFMC_Automation
     ) => {
         try {
-            const automationDefinitionOutput: any[] = [];
+            const automationDefinitionOutput: {
+                [key: string]: any;
+            }[] = [];
 
             if (Array.isArray(automations)) {
                 for (const a in automations) {
@@ -384,7 +387,25 @@ export class AutomationStudio {
                     });
             }
 
-            return automationDefinitionOutput;
+            const finalOutput: any[] = [];
+            const finalOutputLog: any[] = [];
+
+            for (const a in automationDefinitionOutput) {
+                const asset = automationDefinitionOutput[a];
+                const objectMapping = await MappingByActivityType(
+                    asset.assetType.name
+                );
+                const objectIdKey = objectMapping && objectMapping.objectIdKey;
+                if (
+                    objectIdKey &&
+                    !finalOutputLog.includes(asset[objectIdKey])
+                ) {
+                    finalOutputLog.push(asset[objectIdKey]);
+                    finalOutput.push(asset);
+                }
+            }
+
+            return finalOutput;
         } catch (err) {
             console.error(err);
         }
@@ -397,24 +418,26 @@ export class AutomationStudio {
     gatherAutomationActivityDependencies = async (
         automationDefinitions: any[]
     ) => {
-        const formattedAutomationDependencies: {
-            automationStudio: any[];
-            contentBuilder: any[];
-            emailStudio: any[];
-        } = {
+        const formattedAutomationDependencies: any = {
             automationStudio: [],
             contentBuilder: [],
             emailStudio: [],
         };
 
         for (const a in automationDefinitions) {
-            const definition = automationDefinitions[a];
-            const assetType = definition.assetType;
+            const definition: any = automationDefinitions[a];
+            const assetType =
+                definition &&
+                typeof definition === 'object' &&
+                definition.assetType;
+
             const assetTypeName = assetType && assetType.name;
 
+            let assetIdKey: string;
             switch (assetTypeName) {
                 case 'userinitiatedsend':
-                    const legacyId = definition.Email && definition.Email.ID;
+                    const legacyId =
+                        definition && definition.Email && definition.Email.ID;
 
                     const emailAssetResponse =
                         legacyId &&
@@ -425,6 +448,16 @@ export class AutomationStudio {
 
                     emailAssetResponse &&
                         emailAssetResponse.assets &&
+                        formattedAutomationDependencies &&
+                        typeof formattedAutomationDependencies === 'object' &&
+                        Object.prototype.hasOwnProperty.call(
+                            formattedAutomationDependencies,
+                            'contentBuilder'
+                        ) &&
+                        formattedAutomationDependencies?.contentBuilder &&
+                        Array.isArray(
+                            formattedAutomationDependencies.contentBuilder
+                        ) &&
                         formattedAutomationDependencies.contentBuilder.push(
                             emailAssetResponse
                         );
@@ -469,7 +502,40 @@ export class AutomationStudio {
             }
         }
 
-        return formattedAutomationDependencies || {};
+        const finalOutput: {
+            [key: string]: any;
+        } = {};
+
+        for (const a in formattedAutomationDependencies) {
+            const context = a;
+            const contextDependencies =
+                formattedAutomationDependencies[context];
+
+            let assetIdKey: string | null = ['contentBuilder'].includes(context)
+                ? 'id'
+                : ['emailStudio'].includes(context)
+                ? 'objectID'
+                : null;
+
+            const folders = contextDependencies.map(
+                (dep: { folders: Folder }) => dep.folders
+            );
+            const assets = contextDependencies.map(
+                (dep: { assets: any }) => dep.assets
+            );
+
+            const uniqueAssets =
+                assetIdKey &&
+                (await uniqueArrayByKey(assets.flat(), assetIdKey));
+
+            const uniqueFolders = await uniqueArrayByKey(folders.flat(), 'id');
+
+            finalOutput[context] = {
+                folders: uniqueFolders || [],
+                assets: uniqueAssets || [],
+            };
+        }
+        return finalOutput || {};
     };
 
     /**
