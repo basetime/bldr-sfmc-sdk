@@ -5,7 +5,7 @@ import { formatContentBuilderAssets } from '../utils/_context/contentBuilder/For
 import { getContentBuilderAssetContent } from '../utils/_context/contentBuilder/GetContentBuilderAssetContent';
 import {
     getAssetDependency,
-    setUpdatedPackageAssetContent
+    setUpdatedPackageAssetContent,
 } from '../utils/_context/contentBuilder/GetContentBuilderAssetDependencies';
 import { contentBuilderPackageReference } from '../utils/_context/contentBuilder/PackageReference';
 

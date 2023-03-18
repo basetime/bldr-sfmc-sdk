@@ -255,7 +255,6 @@ export class AutomationStudio {
                 formattedAutomationDefinitions,
                 formattedAutomationDependencies,
             };
-
         } catch (err: any) {
             return err.message;
         }

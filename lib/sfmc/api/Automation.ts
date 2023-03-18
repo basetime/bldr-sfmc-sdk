@@ -1,6 +1,5 @@
 import { Client } from '../types/sfmc_client';
 import { MappingByActivityTypeId } from '../utils/automationActivities';
-import { automationStudioActivityTypes } from '../utils/automationActivityTypes';
 import { handleError } from '../utils/handleError';
 
 const { getProperties } = require('sfmc-soap-object-reference');
@@ -159,25 +158,13 @@ export class Automation {
         activityObjectId: string;
     }) {
         try {
-            if (!automationStudioActivityTypes.includes(request.activityType)) {
-                throw new Error(
-                    `Unknown Activity Type. Supported Types are: ${JSON.stringify(
-                        automationStudioActivityTypes
-                    )}`
-                );
-            }
-
             const resp = await this.client.rest.get(
                 `/automation/v1/${request.activityType}/${request.activityObjectId}`
             );
 
-            if (Object.prototype.hasOwnProperty.call(resp, 'errors')) {
-                throw new Error(resp.errors[0].message);
-            }
-
             return resp;
         } catch (err) {
-            return handleError(err);
+            return err;
         }
     }
     /**
@@ -193,7 +180,7 @@ export class Automation {
             }[];
         }[];
     }) {
-        const activities = [];
+        const activityDefinitions = [];
 
         if (Object.prototype.hasOwnProperty.call(automation, 'steps')) {
             for (const as in automation.steps) {
@@ -214,6 +201,12 @@ export class Automation {
                         const activityObjectId = activity.activityObjectId;
 
                         let stepActivity;
+                        const objectIdKey: string =
+                            (assetType &&
+                                assetType.objectIdKey &&
+                                typeof assetType.objectIdKey === 'string' &&
+                                assetType.objectIdKey) ||
+                            'id';
 
                         // EmailSendDefinitions are not on the automations REST endpoint
                         if (assetType.name === 'userinitiatedsend') {
@@ -222,10 +215,35 @@ export class Automation {
                                     activityObjectId
                                 );
 
+                            if (stepActivity && !stepActivity.CustomerKey) {
+                                stepActivity = {
+                                    [objectIdKey]: activityObjectId,
+                                    hasBeenDeleted: true,
+                                };
+                            }
                         } else {
                             stepActivity = await this.client.rest.get(
                                 `/automation/v1/${assetType.api}/${activityObjectId}`
                             );
+
+                            const activityResponseKeys =
+                                Object.keys(stepActivity);
+
+                            if (
+                                stepActivity &&
+                                !activityResponseKeys.some((key) =>
+                                    [
+                                        'key',
+                                        'customerKey',
+                                        'CustomerKey',
+                                    ].includes(key)
+                                )
+                            ) {
+                                stepActivity = {
+                                    [objectIdKey]: activityObjectId,
+                                    hasBeenDeleted: true,
+                                };
+                            }
 
                             // Filter Activities have a sub-activity definition to get the actual filter info
                             if (assetType.name === 'filteractivity') {
@@ -247,12 +265,12 @@ export class Automation {
                             folderPath: assetType.folder,
                         };
 
-                        activities.push(stepActivity);
+                        activityDefinitions.push(stepActivity);
                     }
                 }
             }
         }
-        return activities;
+        return activityDefinitions;
     }
     /**
      * Retrieve Email Send Definition
