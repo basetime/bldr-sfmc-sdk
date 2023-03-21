@@ -320,7 +320,6 @@ export class Automation {
         CCEmail: string;
     }> {
         try {
-
             const activityResponse = await this.client.soap.retrieve(
                 'EmailSendDefinition',
                 [...emailSendDefinition],
