@@ -4,15 +4,15 @@ const SDK = require('sfmc-sdk');
 
 // Class Imports
 import { Account } from '../sfmc/api/Account';
-import { Folder } from '../sfmc/api/Folder';
 import { Automation } from '../sfmc/api/Automation';
 import { ContentBuilderAsset } from '../sfmc/api/ContentBuilderAssets';
+import { Folder } from '../sfmc/api/Folder';
 import { sfmc_context_mapping } from './utils/sfmcContextMapping';
 
 // Type Definition Imports
-import { AuthObject } from './types/sfmc_auth_object';
 import { SFMC_Client } from '../cli/types/sfmc_client';
 import { EmailStudio } from './api/EmailStudio';
+import { AuthObject } from './types/sfmc_auth_object';
 
 /**
  * Creates an instance of BLDR SDK.
@@ -55,6 +55,7 @@ export class SFMC implements SFMC_Client {
         getAutomationActivity: Function;
         getAutomationActivities: Function;
         patchAutomationAsset: Function;
+        postAsset: Function;
         searchActivity: Function;
         searchActivityByCategoryId: Function;
     };

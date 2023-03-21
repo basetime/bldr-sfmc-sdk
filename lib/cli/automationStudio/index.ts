@@ -433,6 +433,11 @@ export class AutomationStudio {
             const assetTypeName = assetType && assetType.name;
 
             let assetIdKey: string;
+            let DECustomerKey: string;
+            let findDECustomerKey: any;
+            let dataExtensionAssetResponse;
+            let dataExtensionAssetResponseStatus;
+            let customerKey: string | undefined;
             switch (assetTypeName) {
                 case 'userinitiatedsend':
                     const legacyId =
@@ -460,17 +465,39 @@ export class AutomationStudio {
                         formattedAutomationDependencies.contentBuilder.push(
                             emailAssetResponse
                         );
-                    break;
                 case 'dataextractactivity':
-                    const DECustomerKey = definition.dataFields.find(
-                        (dataField: {
-                            name: string;
-                            type: string;
-                            value: string;
-                        }) => dataField.name === 'DECustomerKey'
-                    );
-                    const customerKey = DECustomerKey && DECustomerKey.value;
-                    let dataExtensionAssetResponse;
+                case 'importactivity':
+                case 'queryactivity':
+                    if (assetTypeName === 'dataextractactivity') {
+                        findDECustomerKey = definition.dataFields.find(
+                            (dataField: {
+                                name: string;
+                                type: string;
+                                value: string;
+                            }) => dataField.name === 'DECustomerKey'
+                        );
+
+                        customerKey =
+                            findDECustomerKey && findDECustomerKey.value;
+                    } else if (assetTypeName === 'importactivity') {
+                        findDECustomerKey =
+                            await this.emailStudio.searchDataExtensions({
+                                searchKey: 'ObjectID',
+                                searchTerm: definition.destinationObjectId,
+                            });
+                        customerKey =
+                            findDECustomerKey &&
+                            Array.isArray(findDECustomerKey) &&
+                            findDECustomerKey.length === 1 &&
+                            findDECustomerKey[0].CustomerKey;
+                    } else if (assetTypeName === 'queryactivity') {
+                        customerKey = definition && definition.targetKey;
+                    } else if (assetTypeName === 'userinitiatedsend') {
+                        console.log({
+                            List: definition.SendDefinitionList.List,
+                        });
+                    }
+
                     dataExtensionAssetResponse =
                         customerKey &&
                         (await this.emailStudio.gatherAssetById(
@@ -478,17 +505,20 @@ export class AutomationStudio {
                             true
                         ));
 
+                    dataExtensionAssetResponseStatus =
+                        dataExtensionAssetResponse &&
+                        dataExtensionAssetResponse.status;
+
                     if (
-                        dataExtensionAssetResponse.status &&
-                        dataExtensionAssetResponse.status === 'error'
+                        dataExtensionAssetResponseStatus &&
+                        dataExtensionAssetResponseStatus === 'error'
                     ) {
                         dataExtensionAssetResponse =
-                            customerKey &&
-                            (await this.emailStudio.gatherAssetById(
+                            await this.emailStudio.gatherAssetById(
                                 customerKey,
                                 true,
                                 true
-                            ));
+                            );
                     }
 
                     dataExtensionAssetResponse &&
@@ -513,12 +543,13 @@ export class AutomationStudio {
             let assetIdKey: string | null = ['contentBuilder'].includes(context)
                 ? 'id'
                 : ['emailStudio'].includes(context)
-                ? 'objectID'
+                ? 'objectId'
                 : null;
 
             const folders = contextDependencies.map(
                 (dep: { folders: Folder }) => dep.folders
             );
+
             const assets = contextDependencies.map(
                 (dep: { assets: any }) => dep.assets
             );

@@ -320,9 +320,10 @@ export class Automation {
         CCEmail: string;
     }> {
         try {
+
             const activityResponse = await this.client.soap.retrieve(
                 'EmailSendDefinition',
-                emailSendDefinition,
+                [...emailSendDefinition],
                 {
                     filter: {
                         leftOperand: 'ObjectID',
@@ -405,7 +406,7 @@ export class Automation {
      * @param asset
      * @returns
      */
-    async postAutomationAsset(asset: any) {
+    postAsset = async (asset: any) => {
         try {
             const assetType = asset.assetType;
             const resp = await this.client.rest.post(
@@ -417,7 +418,7 @@ export class Automation {
         } catch (err: any) {
             return err;
         }
-    }
+    };
     /**
      *
      * @param asset
