@@ -296,7 +296,7 @@ export class Automation {
                 PartnerKey: string;
                 ID: number;
                 ObjectID: string;
-            };
+            }[];
             SendDefinitionListType: number;
             CustomObjectID: string;
             DataSourceTypeID: number;
@@ -352,24 +352,7 @@ export class Automation {
                 },
                 SuppressTracking: result.SuppressTracking,
                 IsSendLogging: result.IsSendLogging,
-                SendDefinitionList: {
-                    PartnerKey: result.SendDefinitionList.PartnerKey,
-                    ObjectID: result.SendDefinitionList.ObjectID,
-                    List: {
-                        PartnerKey: result.SendDefinitionList.PartnerKey,
-                        ID: result.SendDefinitionList.ID,
-                        ObjectID: result.SendDefinitionList.ObjectID,
-                    },
-                    SendDefinitionListType:
-                        result.SendDefinitionList.SendDefinitionListType,
-                    CustomObjectID: result.SendDefinitionList.CustomObjectID,
-                    DataSourceTypeID:
-                        result.SendDefinitionList.DataSourceTypeID,
-                    IsTestObject: result.SendDefinitionList.IsTestObject,
-                    SalesForceObjectID:
-                        result.SendDefinitionList.SalesForceObjectID,
-                    Name: result.SendDefinitionList.Name,
-                },
+                SendDefinitionList: result.SendDefinitionList,
                 Email: {
                     ID: result.Email.ID,
                 },

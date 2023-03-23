@@ -225,10 +225,12 @@ export class EmailStudio {
                             (dataExtension: { Name: String }) => {
                                 if (!dataExtension.Name) return;
 
-                                return this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(
-                                    dataExtension.Name,
-                                    complete,
-                                    shared
+                                return (
+                                    this.sfmc.emailStudio.retrieveDataExtensionPayloadByName(
+                                        dataExtension.Name,
+                                        complete,
+                                        shared
+                                    ) || null
                                 );
                             }
                         )
@@ -278,7 +280,12 @@ export class EmailStudio {
                     shared
                 );
 
-            const categoryId = dataExtensionPayload.category.categoryId;
+            if (!dataExtensionPayload) {
+                throw new Error('Data Extension Not Found');
+            }
+            const categoryId =
+                dataExtensionPayload &&
+                dataExtensionPayload.category.categoryId;
 
             const dataExtensionFolderObject = await this.sfmc.folder.getFolder({
                 contentType: shared ? 'shared_dataextension' : 'dataextension',
@@ -326,7 +333,7 @@ export class EmailStudio {
         } catch (err: any) {
             return {
                 status: 'error',
-                statusMessage: err,
+                statusMessage: err.message || err,
             };
         }
     };

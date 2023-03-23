@@ -338,6 +338,13 @@ export class AutomationStudio {
                     formattedAutomationDefinitions
                 ));
 
+            console.log(
+                JSON.stringify(
+                    formattedAutomationDependencies.emailStudio,
+                    null,
+                    2
+                )
+            );
             return {
                 folders: formattedFolders || [],
                 assets: formattedAssetResponse || [],
@@ -417,155 +424,219 @@ export class AutomationStudio {
     gatherAutomationActivityDependencies = async (
         automationDefinitions: any[]
     ) => {
-        const formattedAutomationDependencies: any = {
-            automationStudio: [],
-            contentBuilder: [],
-            emailStudio: [],
-        };
-
-        for (const a in automationDefinitions) {
-            const definition: any = automationDefinitions[a];
-            const assetType =
-                definition &&
-                typeof definition === 'object' &&
-                definition.assetType;
-
-            const assetTypeName = assetType && assetType.name;
-
-            let assetIdKey: string;
-            let DECustomerKey: string;
-            let findDECustomerKey: any;
-            let dataExtensionAssetResponse;
-            let dataExtensionAssetResponseStatus;
-            let customerKey: string | undefined;
-            switch (assetTypeName) {
-                case 'userinitiatedsend':
-                    const legacyId =
-                        definition && definition.Email && definition.Email.ID;
-
-                    const emailAssetResponse =
-                        legacyId &&
-                        (await this.contentBuilder.gatherAssetById(
-                            legacyId,
-                            true
-                        ));
-
-                    emailAssetResponse &&
-                        emailAssetResponse.assets &&
-                        formattedAutomationDependencies &&
-                        typeof formattedAutomationDependencies === 'object' &&
-                        Object.prototype.hasOwnProperty.call(
-                            formattedAutomationDependencies,
-                            'contentBuilder'
-                        ) &&
-                        formattedAutomationDependencies?.contentBuilder &&
-                        Array.isArray(
-                            formattedAutomationDependencies.contentBuilder
-                        ) &&
-                        formattedAutomationDependencies.contentBuilder.push(
-                            emailAssetResponse
-                        );
-                case 'dataextractactivity':
-                case 'importactivity':
-                case 'queryactivity':
-                    if (assetTypeName === 'dataextractactivity') {
-                        findDECustomerKey = definition.dataFields.find(
-                            (dataField: {
-                                name: string;
-                                type: string;
-                                value: string;
-                            }) => dataField.name === 'DECustomerKey'
-                        );
-
-                        customerKey =
-                            findDECustomerKey && findDECustomerKey.value;
-                    } else if (assetTypeName === 'importactivity') {
-                        findDECustomerKey =
-                            await this.emailStudio.searchDataExtensions({
-                                searchKey: 'ObjectID',
-                                searchTerm: definition.destinationObjectId,
-                            });
-                        customerKey =
-                            findDECustomerKey &&
-                            Array.isArray(findDECustomerKey) &&
-                            findDECustomerKey.length === 1 &&
-                            findDECustomerKey[0].CustomerKey;
-                    } else if (assetTypeName === 'queryactivity') {
-                        customerKey = definition && definition.targetKey;
-                    } else if (assetTypeName === 'userinitiatedsend') {
-                        console.log({
-                            List: definition.SendDefinitionList.List,
-                        });
-                    }
-
-                    dataExtensionAssetResponse =
-                        customerKey &&
-                        (await this.emailStudio.gatherAssetById(
-                            customerKey,
-                            true
-                        ));
-
-                    dataExtensionAssetResponseStatus =
-                        dataExtensionAssetResponse &&
-                        dataExtensionAssetResponse.status;
-
-                    if (
-                        dataExtensionAssetResponseStatus &&
-                        dataExtensionAssetResponseStatus === 'error'
-                    ) {
-                        dataExtensionAssetResponse =
-                            await this.emailStudio.gatherAssetById(
-                                customerKey,
-                                true,
-                                true
-                            );
-                    }
-
-                    dataExtensionAssetResponse &&
-                        dataExtensionAssetResponse.assets &&
-                        formattedAutomationDependencies.emailStudio.push(
-                            dataExtensionAssetResponse
-                        );
-
-                    break;
-            }
-        }
-
-        const finalOutput: {
-            [key: string]: any;
-        } = {};
-
-        for (const a in formattedAutomationDependencies) {
-            const context = a;
-            const contextDependencies =
-                formattedAutomationDependencies[context];
-
-            let assetIdKey: string | null = ['contentBuilder'].includes(context)
-                ? 'id'
-                : ['emailStudio'].includes(context)
-                ? 'objectId'
-                : null;
-
-            const folders = contextDependencies.map(
-                (dep: { folders: Folder }) => dep.folders
-            );
-
-            const assets = contextDependencies.map(
-                (dep: { assets: any }) => dep.assets
-            );
-
-            const uniqueAssets =
-                assetIdKey &&
-                (await uniqueArrayByKey(assets.flat(), assetIdKey));
-
-            const uniqueFolders = await uniqueArrayByKey(folders.flat(), 'id');
-
-            finalOutput[context] = {
-                folders: uniqueFolders || [],
-                assets: uniqueAssets || [],
+        try {
+            const formattedAutomationDependencies: any = {
+                automationStudio: [],
+                contentBuilder: [],
+                emailStudio: [],
             };
+
+            for (const a in automationDefinitions) {
+                const definition: any = automationDefinitions[a];
+                const assetType =
+                    definition &&
+                    typeof definition === 'object' &&
+                    definition.assetType;
+
+                const assetTypeName = assetType && assetType.name;
+
+                let assetIdKey: string;
+                let DECustomerKey: string;
+                let findDECustomerKey: any;
+                let dataExtensionAssetResponse;
+                let dataExtensionAssetResponseStatus;
+                let customerKeyArr: string[] = [];
+                switch (assetTypeName) {
+                    case 'userinitiatedsend':
+                        console.log({
+                            definition: definition.SendDefinitionList,
+                        });
+                        const legacyId =
+                            definition &&
+                            definition.Email &&
+                            definition.Email.ID;
+
+                        const emailAssetResponse =
+                            legacyId &&
+                            (await this.contentBuilder.gatherAssetById(
+                                legacyId,
+                                true
+                            ));
+
+                        emailAssetResponse &&
+                            emailAssetResponse.assets &&
+                            formattedAutomationDependencies &&
+                            typeof formattedAutomationDependencies ===
+                                'object' &&
+                            Object.prototype.hasOwnProperty.call(
+                                formattedAutomationDependencies,
+                                'contentBuilder'
+                            ) &&
+                            formattedAutomationDependencies?.contentBuilder &&
+                            Array.isArray(
+                                formattedAutomationDependencies.contentBuilder
+                            ) &&
+                            formattedAutomationDependencies.contentBuilder.push(
+                                emailAssetResponse
+                            );
+                    case 'dataextractactivity':
+                    case 'importactivity':
+                    case 'userinitiatedsend':
+                    case 'queryactivity':
+                        if (assetTypeName === 'dataextractactivity') {
+                            findDECustomerKey = definition.dataFields.find(
+                                (dataField: {
+                                    name: string;
+                                    type: string;
+                                    value: string;
+                                }) => dataField.name === 'DECustomerKey'
+                            );
+
+                            findDECustomerKey &&
+                                findDECustomerKey.value &&
+                                customerKeyArr.push(findDECustomerKey.value);
+                        } else if (assetTypeName === 'importactivity') {
+                            findDECustomerKey =
+                                await this.emailStudio.searchDataExtensions({
+                                    searchKey: 'ObjectID',
+                                    searchTerm: definition.destinationObjectId,
+                                });
+
+                            findDECustomerKey &&
+                                Array.isArray(findDECustomerKey) &&
+                                findDECustomerKey.length === 1 &&
+                                findDECustomerKey[0].CustomerKey &&
+                                customerKeyArr.push(
+                                    findDECustomerKey[0].CustomerKey
+                                );
+                        } else if (assetTypeName === 'queryactivity') {
+                            definition &&
+                                definition.targetKey &&
+                                customerKeyArr.push(definition.targetKey);
+                        } else if (assetTypeName === 'userinitiatedsend') {
+                            const sendDefinitionList =
+                                (definition && definition.SendDefinitionList) ||
+                                [];
+                            const sendDefinitionListIDs =
+                                sendDefinitionList &&
+                                sendDefinitionList.length &&
+                                (await Promise.all(
+                                    sendDefinitionList.map(
+                                        async (sendDefinitionObject: {
+                                            PartnerKey: string;
+                                            ObjectID: string;
+                                            SendDefinitionListType: string;
+                                            CustomObjectID: string;
+                                            DataSourceTypeID: string;
+                                            IsTestObject: boolean;
+                                            SalesForceObjectID: string;
+                                            Name: string;
+                                        }) => {
+                                            findDECustomerKey =
+                                                await this.emailStudio.searchDataExtensions(
+                                                    {
+                                                        searchKey: 'ObjectID',
+                                                        searchTerm:
+                                                            sendDefinitionObject.CustomObjectID,
+                                                    }
+                                                );
+
+                                            return (
+                                                findDECustomerKey &&
+                                                Array.isArray(
+                                                    findDECustomerKey
+                                                ) &&
+                                                findDECustomerKey.length ===
+                                                    1 &&
+                                                findDECustomerKey[0].CustomerKey
+                                            );
+                                        }
+                                    )
+                                ));
+
+                            sendDefinitionListIDs &&
+                                sendDefinitionListIDs.length &&
+                                customerKeyArr.push(...sendDefinitionListIDs);
+                        }
+
+                        for (const d in customerKeyArr) {
+                            const customerKey = customerKeyArr[d];
+
+                            let dataExtensionAssetResponse =
+                                await this.emailStudio.gatherAssetById(
+                                    customerKey,
+                                    true
+                                );
+
+                            dataExtensionAssetResponseStatus =
+                                dataExtensionAssetResponse &&
+                                dataExtensionAssetResponse.status;
+
+                            if (
+                                dataExtensionAssetResponseStatus &&
+                                dataExtensionAssetResponseStatus === 'error'
+                            ) {
+                                dataExtensionAssetResponse =
+                                    await this.emailStudio.gatherAssetById(
+                                        customerKey,
+                                        true,
+                                        true
+                                    );
+                            }
+
+                            formattedAutomationDependencies.emailStudio.push(
+                                dataExtensionAssetResponse
+                            );
+                        }
+
+                        break;
+                }
+            }
+
+            const finalOutput: {
+                [key: string]: any;
+            } = {};
+
+            for (const a in formattedAutomationDependencies) {
+                const context = a;
+                const contextDependencies =
+                    formattedAutomationDependencies[context];
+
+                let assetIdKey: string | null = ['contentBuilder'].includes(
+                    context
+                )
+                    ? 'id'
+                    : ['emailStudio'].includes(context)
+                    ? 'objectId'
+                    : null;
+
+                const folders = contextDependencies
+                    .map((dep: { folders: Folder }) => dep.folders)
+                    .filter(Boolean);
+
+                const assets = contextDependencies
+                    .map((dep: { assets: any }) => dep.assets)
+                    .filter(Boolean);
+
+                const uniqueAssets =
+                    assetIdKey &&
+                    (await uniqueArrayByKey(assets.flat(), assetIdKey));
+
+                const uniqueFolders = await uniqueArrayByKey(
+                    folders.flat(),
+                    'id'
+                );
+
+                finalOutput[context] = {
+                    folders: uniqueFolders || [],
+                    assets: uniqueAssets || [],
+                };
+            }
+
+            return finalOutput || {};
+        } catch (err: any) {
+            return err;
         }
-        return finalOutput || {};
     };
 
     /**

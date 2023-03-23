@@ -256,9 +256,10 @@ export class EmailStudio {
             }
         );
 
-        return complete === false
+        return dataExtension && dataExtension.Results && complete === false
             ? this.getDataExtensionPayload(dataExtension, shared)
-            : this.getDataExtensionPayloadComplete(dataExtension, shared);
+            : this.getDataExtensionPayloadComplete(dataExtension, shared) ||
+                  null;
     };
 
     /**
@@ -283,9 +284,10 @@ export class EmailStudio {
             }
         );
 
-        return complete === false
+        return dataExtension && dataExtension.Results && complete === false
             ? this.getDataExtensionPayload(dataExtension, shared)
-            : this.getDataExtensionPayloadComplete(dataExtension, shared);
+            : this.getDataExtensionPayloadComplete(dataExtension, shared) ||
+                  null;
     };
 
     getDataExtensionPayload = async (dataExtension: any, shared = false) => {
