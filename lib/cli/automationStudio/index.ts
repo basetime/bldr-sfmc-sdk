@@ -58,6 +58,8 @@ export class AutomationStudio {
 
         const formattedResponse =
             (response &&
+                response.Results &&
+                response.Results.length &&
                 response.Results.map(
                     (folder: {
                         Name: string;
@@ -204,13 +206,10 @@ export class AutomationStudio {
                     )
                     .filter(Boolean);
 
-                    console.log({ isolateFolderIds });
-
             const collectAutomationKeys =
                 await this.sfmc.automation.getAssetsByFolderArray(
                     isolateFolderIds
                 );
-            console.log({ collectAutomationKeys });
 
             const isolateAutomationKeys =
                 collectAutomationKeys &&
@@ -223,8 +222,6 @@ export class AutomationStudio {
                 (await this.sfmc.automation.getAutomationsByKey(
                     isolateAutomationKeys
                 ));
-
-                console.log({assetResponse})
 
             if (
                 assetResponse &&
@@ -254,7 +251,6 @@ export class AutomationStudio {
                     formattedAutomationDefinitions
                 ));
 
-            console.log({formattedAutomationDependencies})
             return {
                 folders: formattedFolders || [],
                 assets: formattedAssetResponse || [],
@@ -432,7 +428,6 @@ export class AutomationStudio {
 
             for (const a in automationDefinitions) {
                 const definition: any = automationDefinitions[a];
-                console.log({definition})
                 const assetType =
                     definition &&
                     typeof definition === 'object' &&
@@ -448,9 +443,6 @@ export class AutomationStudio {
                 let customerKeyArr: string[] = [];
                 switch (assetTypeName) {
                     case 'userinitiatedsend':
-                        console.log({
-                            definition: definition.SendDefinitionList,
-                        });
                         const legacyId =
                             definition &&
                             definition.Email &&
@@ -510,7 +502,6 @@ export class AutomationStudio {
                                     findDECustomerKey[0].CustomerKey
                                 );
                         } else if (assetTypeName === 'queryactivity') {
-                            console.log({definition})
                             definition &&
                                 definition.targetKey &&
                                 customerKeyArr.push(definition.targetKey);
@@ -759,7 +750,7 @@ export class AutomationStudio {
                     categoryId: isolateFolderIds[i],
                 });
 
-            console.log({definitionRequest})
+            console.log({ definitionRequest });
             definitionReturn.push(...definitionRequest.items);
         }
 
@@ -792,7 +783,9 @@ export class AutomationStudio {
                 categoryId: definitionRequest.categoryId,
             }));
 
-        const buildFolderPaths = await buildFolderPathsSoap(folderResponse.full);
+        const buildFolderPaths = await buildFolderPathsSoap(
+            folderResponse.full
+        );
 
         return {
             assets: Array.isArray(definitionRequest)

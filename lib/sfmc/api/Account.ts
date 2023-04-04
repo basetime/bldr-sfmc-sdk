@@ -84,8 +84,11 @@ export class Account {
                 // If no argument is passed, get all Business Unit Details
                 const getAllMidsRequest = await this.getInstanceDetails();
 
-                if (getAllMidsRequest.OverallStatus !== 'OK') {
-                    throw new Error(getAllMidsRequest.response.statusText);
+                if (
+                    getAllMidsRequest &&
+                    getAllMidsRequest.OverallStatus !== 'OK'
+                ) {
+                    throw new Error(getAllMidsRequest.OverallStatus);
                 }
 
                 midsArray =
@@ -104,12 +107,16 @@ export class Account {
                     [];
             }
 
-            for (let m in midsArray) {
-                const mid = midsArray[m];
-                const businessUnitDetail = await this.getBusinessUnitDetails(
-                    mid
-                );
-                businessUnitDetails.push(...businessUnitDetail.Results);
+            if (midsArray && midsArray.length) {
+                for (let m in midsArray) {
+                    const mid = midsArray[m];
+                    const businessUnitDetail =
+                        mid && (await this.getBusinessUnitDetails(mid));
+
+                    businessUnitDetail &&
+                        businessUnitDetail.Results &&
+                        businessUnitDetails.push(...businessUnitDetail.Results);
+                }
             }
 
             return businessUnitDetails;
