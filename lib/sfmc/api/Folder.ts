@@ -201,6 +201,8 @@ export class Folder {
         const rootFolderContext = this.sfmc_context.find(
             (ctx) => ctx.contentType === request.contentType
         );
+
+
         if (rootFolderContext) {
             const rootFolderRequest = await this.search({
                 contentType: request.contentType,
@@ -213,12 +215,13 @@ export class Folder {
                 rootFolderRequest.Results &&
                 rootFolderRequest.Results.length
             ) {
-                results = [...rootFolderRequest.Results];
+                const rootFolder = rootFolderRequest.Results && rootFolderRequest.Results.find(folder => folder.Name === rootFolderContext.rootName)
+                results = rootFolder && [rootFolder];
 
                 if (rootFolderRequest.Results[0].ID === request.categoryId) {
                     return {
                         results,
-                        stop: true,
+                        stop: false,
                     };
                 }
             }
@@ -405,6 +408,7 @@ export class Folder {
         let up = (await this.getParentFoldersRecursive(request)) || [];
         let down =
             (!up.stop && (await this.getSubfoldersRecursive(request))) || [];
+
         return {
             up,
             down,

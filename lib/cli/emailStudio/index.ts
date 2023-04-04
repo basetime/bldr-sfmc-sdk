@@ -179,6 +179,7 @@ export class EmailStudio {
         try {
             const shared =
                 request.contentType === 'shared_dataextension' ? true : false;
+
             const rootParentName = shared
                 ? 'Shared Data Extensions'
                 : 'Data Extensions';
@@ -199,10 +200,12 @@ export class EmailStudio {
                         .filter(Boolean)) ||
                 [];
 
+
             const assetsAndFoldersRequest = await Promise.all([
                 buildFolderPathsSoap(folderResponse.full),
                 this.sfmc.emailStudio.getAssetsByFolderArray(isolateFolderIds),
             ]);
+
 
             const buildFolderPaths =
                 (assetsAndFoldersRequest && assetsAndFoldersRequest[0]) || [];
