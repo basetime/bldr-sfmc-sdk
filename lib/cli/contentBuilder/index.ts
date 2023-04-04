@@ -346,7 +346,7 @@ export class ContentBuilder {
                 assetResponse;
 
             if (assetResponse && !assetResponse.id) {
-                throw new Error(assetResponse.response.statusText);
+                throw new Error(assetResponse);
             }
 
             const categoryId =

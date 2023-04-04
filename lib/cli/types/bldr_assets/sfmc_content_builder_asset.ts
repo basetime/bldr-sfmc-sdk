@@ -24,4 +24,7 @@ export interface BLDR_SFMC_Content_Builder_Asset {
     sharingProperties?: {
         [key: string]: any;
     };
+    legacyData?: {
+        [key: string]: any;
+    };
 }

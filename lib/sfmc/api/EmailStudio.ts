@@ -500,6 +500,7 @@ export class EmailStudio {
                 de.dataRetentionPeriodUnitOfMeasure = retentionPeriodUnit;
             }
 
+            console.log({de})
             return de;
         }
     };

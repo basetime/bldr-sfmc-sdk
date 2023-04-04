@@ -68,6 +68,10 @@ const setAssetPostObject = (
         post.views = asset.views;
     }
 
+    if (asset.legacyData) {
+        post.legacyData = asset.legacyData;
+    }
+
     if (asset.businessUnitAvailability) {
         post.businessUnitAvailability = asset.businessUnitAvailability;
     }

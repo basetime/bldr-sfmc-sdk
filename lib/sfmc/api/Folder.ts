@@ -201,7 +201,7 @@ export class Folder {
         const rootFolderContext = this.sfmc_context.find(
             (ctx) => ctx.contentType === request.contentType
         );
-
+        console.log({ rootFolderContext });
         if (rootFolderContext) {
             const rootFolderRequest = await this.search({
                 contentType: request.contentType,
@@ -226,7 +226,6 @@ export class Folder {
         }
 
         const initialCategory = await this.getFolder(request);
-
         if (initialCategory.OverallStatus !== 'OK') {
             console.log(
                 'initial category',
@@ -240,12 +239,27 @@ export class Folder {
             initialCategory.Results.length
         ) {
             const initResult = initialCategory.Results[0];
+            console.log({ initResult });
             results = [...results, ...initialCategory.Results];
-            parentId =
-                (initResult &&
-                    initResult.ParentFolder &&
-                    initResult.ParentFolder.ID) ||
-                null;
+            console.log(results)
+            if (
+                initResult &&
+                initResult.ParentFolder &&
+                initResult.ParentFolder.Name &&
+                rootFolderContext &&
+                initResult.ParentFolder.Name === rootFolderContext.rootName
+            ) {
+                return {
+                    results,
+                    stop: false,
+                };
+            } else {
+                parentId =
+                    (initResult &&
+                        initResult.ParentFolder &&
+                        initResult.ParentFolder.ID) ||
+                    null;
+            }
         }
 
         if (
@@ -284,6 +298,7 @@ export class Folder {
                             };
                         } = parentRequest.Results[0];
 
+                        console.log(parentResult.ParentFolder);
                         results.push(...parentRequest.Results);
                         parentId =
                             (parentResult &&
@@ -297,6 +312,7 @@ export class Folder {
             }
         }
 
+        console.log({ results });
         return {
             results,
             stop: false,
@@ -398,9 +414,11 @@ export class Folder {
         categoryId: number;
     }) {
         let up = (await this.getParentFoldersRecursive(request)) || [];
+        console.log(up)
         let down =
             (!up.stop && (await this.getSubfoldersRecursive(request))) || [];
 
+            console.log({up, down})
         return {
             up,
             down,
