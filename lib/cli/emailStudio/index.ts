@@ -200,12 +200,10 @@ export class EmailStudio {
                         .filter(Boolean)) ||
                 [];
 
-
             const assetsAndFoldersRequest = await Promise.all([
                 buildFolderPathsSoap(folderResponse.full),
                 this.sfmc.emailStudio.getAssetsByFolderArray(isolateFolderIds),
             ]);
-
 
             const buildFolderPaths =
                 (assetsAndFoldersRequest && assetsAndFoldersRequest[0]) || [];

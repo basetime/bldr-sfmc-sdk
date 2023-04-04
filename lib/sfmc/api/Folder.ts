@@ -202,7 +202,6 @@ export class Folder {
             (ctx) => ctx.contentType === request.contentType
         );
 
-
         if (rootFolderContext) {
             const rootFolderRequest = await this.search({
                 contentType: request.contentType,
@@ -215,7 +214,11 @@ export class Folder {
                 rootFolderRequest.Results &&
                 rootFolderRequest.Results.length
             ) {
-                const rootFolder = rootFolderRequest.Results && rootFolderRequest.Results.find(folder => folder.Name === rootFolderContext.rootName)
+                const rootFolder =
+                    rootFolderRequest.Results &&
+                    rootFolderRequest.Results.find(
+                        (folder) => folder.Name === rootFolderContext.rootName
+                    );
                 results = rootFolder && [rootFolder];
 
                 if (rootFolderRequest.Results[0].ID === request.categoryId) {

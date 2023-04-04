@@ -17,7 +17,6 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
     let folders = await uniqueArrayByKey(simplifiedFolders, 'ID');
     folders = folders.sort((a, b) => a.ID - b.ID);
 
-
     const foldersOut = [];
     const compiledFolderPaths = [];
     let path = '';
@@ -47,7 +46,6 @@ const buildFolderPathsSoap = async (folderResponse: any[]) => {
     );
     // Reset Path String
     path = '';
-
 
     do {
         for (const f in folders) {
