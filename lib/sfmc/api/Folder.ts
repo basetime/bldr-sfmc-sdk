@@ -226,7 +226,7 @@ export class Folder {
 
         const initialCategory = await this.getFolder(request);
         if (initialCategory.OverallStatus !== 'OK') {
-           throw new Error(initialCategory.OverallStatus)
+            throw new Error(initialCategory.OverallStatus);
         }
 
         if (
@@ -274,7 +274,7 @@ export class Folder {
                         }));
 
                     if (parentRequest && parentRequest.OverallStatus !== 'OK') {
-                       throw new Error(parentRequest.OverallStatus)
+                        throw new Error(parentRequest.OverallStatus);
                     }
 
                     if (
