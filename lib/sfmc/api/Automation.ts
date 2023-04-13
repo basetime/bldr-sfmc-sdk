@@ -251,7 +251,7 @@ export class Automation {
                                     stepActivity.filterDefinitionId;
                                 const filterDefinition =
                                     await this.client.rest.get(
-                                        `/automation/v1/filterdefinitions/${activityDefinitionId}`
+                                        `/email/v1/filters/filterdefinition/${activityDefinitionId}`
                                     );
 
                                 if (filterDefinition)
