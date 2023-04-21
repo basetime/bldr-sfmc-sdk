@@ -579,13 +579,15 @@ export class EmailStudio {
             // Organize and format DE Field Schema
             for (let a = 0; a < fieldLength; a++) {
                 let fieldObj = dataExtensionFieldArr[a];
-                const updatedFieldObj = await lowercaseKeys(fieldObj);
-                fieldArray.push(updatedFieldObj);
 
                 //set sendable field type
                 if (sendableName == fieldObj.Name) {
                     sendableFieldType = fieldObj.FieldType;
+                    console.log({sendableFieldType})
                 }
+
+                const updatedFieldObj = await lowercaseKeys(fieldObj);
+                fieldArray.push(updatedFieldObj);
 
                 //Reset fieldObj
                 fieldObj = '';
