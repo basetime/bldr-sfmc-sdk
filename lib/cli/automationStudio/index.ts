@@ -750,7 +750,6 @@ export class AutomationStudio {
                     categoryId: isolateFolderIds[i],
                 });
 
-            console.log({ definitionRequest });
             definitionReturn.push(...definitionRequest.items);
         }
 

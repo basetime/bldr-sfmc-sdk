@@ -583,7 +583,6 @@ export class EmailStudio {
                 //set sendable field type
                 if (sendableName == fieldObj.Name) {
                     sendableFieldType = fieldObj.FieldType;
-                    console.log({sendableFieldType})
                 }
 
                 const updatedFieldObj = await lowercaseKeys(fieldObj);
