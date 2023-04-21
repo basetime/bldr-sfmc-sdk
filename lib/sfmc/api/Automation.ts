@@ -180,97 +180,141 @@ export class Automation {
             }[];
         }[];
     }) {
-        const activityDefinitions = [];
+        try {
+            const activityDefinitions = [];
 
-        if (Object.prototype.hasOwnProperty.call(automation, 'steps')) {
-            for (const as in automation.steps) {
-                const steps = automation.steps[as];
+            if (Object.prototype.hasOwnProperty.call(automation, 'steps')) {
+                for (const as in automation.steps) {
+                    const steps = automation.steps[as];
 
-                for (const sa in steps.activities) {
-                    const activity: {
-                        objectTypeId: number;
-                        activityObjectId: string;
-                    } = steps.activities[sa];
+                    for (const sa in steps.activities) {
+                        const activity: {
+                            objectTypeId: number;
+                            activityObjectId: string;
+                        } = steps.activities[sa];
 
-                    const assetType = MappingByActivityTypeId(
-                        activity.objectTypeId
-                    );
+                        const assetType = MappingByActivityTypeId(
+                            activity.objectTypeId
+                        );
 
-                    if (assetType) {
-                        // Most activities can be pulled from the automations endpoint
-                        const activityObjectId = activity.activityObjectId;
+                        if (assetType) {
+                            // Most activities can be pulled from the automations endpoint
+                            const activityObjectId = activity.activityObjectId;
 
-                        let stepActivity;
-                        const objectIdKey: string =
-                            (assetType &&
-                                assetType.objectIdKey &&
-                                typeof assetType.objectIdKey === 'string' &&
-                                assetType.objectIdKey) ||
-                            'id';
+                            let stepActivity;
+                            const objectIdKey: string =
+                                (assetType &&
+                                    assetType.objectIdKey &&
+                                    typeof assetType.objectIdKey === 'string' &&
+                                    assetType.objectIdKey) ||
+                                'id';
 
-                        // EmailSendDefinitions are not on the automations REST endpoint
-                        if (assetType.name === 'userinitiatedsend') {
-                            stepActivity =
-                                await this.getEmailSendDefinitionActivity(
-                                    activityObjectId
-                                );
-
-                            if (stepActivity && !stepActivity.CustomerKey) {
-                                stepActivity = {
-                                    [objectIdKey]: activityObjectId,
-                                    hasBeenDeleted: true,
-                                };
-                            }
-                        } else {
-                            stepActivity = await this.client.rest.get(
-                                `/automation/v1/${assetType.api}/${activityObjectId}`
-                            );
-
-                            const activityResponseKeys =
-                                Object.keys(stepActivity);
-
-                            if (
-                                stepActivity &&
-                                !activityResponseKeys.some((key) =>
-                                    [
-                                        'key',
-                                        'customerKey',
-                                        'CustomerKey',
-                                    ].includes(key)
-                                )
-                            ) {
-                                stepActivity = {
-                                    [objectIdKey]: activityObjectId,
-                                    hasBeenDeleted: true,
-                                };
-                            }
-
-                            // Filter Activities have a sub-activity definition to get the actual filter info
-                            if (assetType.name === 'filteractivity') {
-                                const activityDefinitionId =
-                                    stepActivity.filterDefinitionId;
-                                const filterDefinition =
-                                    await this.client.rest.get(
-                                        `/email/v1/filters/filterdefinition/${activityDefinitionId}`
+                            // EmailSendDefinitions are not on the automations REST endpoint
+                            if (assetType.name === 'userinitiatedsend') {
+                                stepActivity =
+                                    await this.getEmailSendDefinitionActivity(
+                                        activityObjectId
                                     );
 
-                                if (filterDefinition)
-                                    stepActivity.filterDefinition =
-                                        filterDefinition;
+                                if (stepActivity && !stepActivity.CustomerKey) {
+                                    stepActivity = {
+                                        [objectIdKey]: activityObjectId,
+                                        hasBeenDeleted: true,
+                                    };
+                                }
+                            } else if (assetType.name === 'filteractivity') {
+                                stepActivity =
+                                    await this.retrieveAutomationActivityDefinition(
+                                        assetType,
+                                        activityObjectId
+                                    );
+
+                                if (stepActivity) {
+                                    const activityDefinitionId =
+                                        stepActivity.filterDefinitionId;
+
+                                    const filterDefinition =
+                                        await this.retrieveFilterDefinition(
+                                            activityDefinitionId
+                                        );
+
+                                    if (filterDefinition) {
+                                        stepActivity.filterDefinition =
+                                            filterDefinition;
+                                    } else {
+                                        stepActivity.filterDefinition = {
+                                            filterDefinitionId: activityDefinitionId,
+                                            hasBeenDeleted: true,
+                                        };
+                                    }
+                                } else {
+                                    stepActivity = {
+                                        [objectIdKey]: activityObjectId,
+                                        hasBeenDeleted: true,
+                                    };
+                                }
+                            } else {
+                                stepActivity = await this.client.rest.get(
+                                    `/automation/v1/${assetType.api}/${activityObjectId}`
+                                );
+
+                                const activityResponseKeys =
+                                    Object.keys(stepActivity);
+
+                                if (
+                                    stepActivity &&
+                                    !activityResponseKeys.some((key) =>
+                                        [
+                                            'key',
+                                            'customerKey',
+                                            'CustomerKey',
+                                        ].includes(key)
+                                    )
+                                ) {
+                                    stepActivity = {
+                                        [objectIdKey]: activityObjectId,
+                                        hasBeenDeleted: true,
+                                    };
+                                }
                             }
+
+                            stepActivity.assetType = assetType;
+                            stepActivity.category = {
+                                folderPath: assetType.folder,
+                            };
+
+                            activityDefinitions.push(stepActivity);
                         }
-
-                        stepActivity.assetType = assetType;
-                        stepActivity.category = {
-                            folderPath: assetType.folder,
-                        };
-
-                        activityDefinitions.push(stepActivity);
                     }
                 }
             }
+            return activityDefinitions;
+        } catch (err) {
+            return err;
         }
-        return activityDefinitions;
+    }
+    async retrieveAutomationActivityDefinition(
+        assetType: { api: string },
+        activityObjectId: string
+    ) {
+        try {
+            const stepActivity = await this.client.rest.get(
+                `/automation/v1/${assetType.api}/${activityObjectId}`
+            );
+
+            return stepActivity;
+        } catch (err) {
+            return null;
+        }
+    }
+    async retrieveFilterDefinition(activityDefinitionId: string) {
+        try {
+            return this.client.rest.get(
+                `/email/v1/filters/filterdefinition/${activityDefinitionId}`
+            );
+        } catch (err) {
+         return null
+        }
     }
     /**
      * Retrieve Email Send Definition
