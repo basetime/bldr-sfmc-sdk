@@ -218,6 +218,7 @@ export class Automation {
 
                                 if (stepActivity && !stepActivity.CustomerKey) {
                                     stepActivity = {
+                                        ...steps.activities[sa],
                                         [objectIdKey]: activityObjectId,
                                         hasBeenDeleted: true,
                                     };
@@ -243,12 +244,15 @@ export class Automation {
                                             filterDefinition;
                                     } else {
                                         stepActivity.filterDefinition = {
-                                            filterDefinitionId: activityDefinitionId,
+                                            ...steps.activities[sa],
+                                            filterDefinitionId:
+                                                activityDefinitionId,
                                             hasBeenDeleted: true,
                                         };
                                     }
                                 } else {
                                     stepActivity = {
+                                        ...steps.activities[sa],
                                         [objectIdKey]: activityObjectId,
                                         hasBeenDeleted: true,
                                     };
@@ -272,6 +276,7 @@ export class Automation {
                                     )
                                 ) {
                                     stepActivity = {
+                                        ...steps.activities[sa],
                                         [objectIdKey]: activityObjectId,
                                         hasBeenDeleted: true,
                                     };
@@ -313,7 +318,7 @@ export class Automation {
                 `/email/v1/filters/filterdefinition/${activityDefinitionId}`
             );
         } catch (err) {
-         return null
+            return null;
         }
     }
     /**
