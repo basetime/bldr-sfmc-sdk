@@ -67,6 +67,7 @@ export class SFMC implements SFMC_Client {
         retrieveDataExtensionPayloadByName: Function;
         retrieveDataExtensionPayloadByCustomerKey: Function;
         getDataExtensionFields: Function;
+        retrieveDataExtensionByObjectID: Function;
         postAsset: Function;
     };
     constructor(AuthObject: AuthObject) {

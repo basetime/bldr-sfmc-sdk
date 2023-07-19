@@ -502,9 +502,23 @@ export class AutomationStudio {
                                     findDECustomerKey[0].CustomerKey
                                 );
                         } else if (assetTypeName === 'queryactivity') {
-                            definition &&
-                                definition.targetKey &&
-                                customerKeyArr.push(definition.targetKey);
+                            findDECustomerKey =
+                                await this.emailStudio.searchDataExtensions({
+                                    searchKey: 'ObjectID',
+                                    searchTerm: definition.targetId,
+                                });
+
+                            findDECustomerKey &&
+                                Array.isArray(findDECustomerKey) &&
+                                findDECustomerKey.length === 1 &&
+                                findDECustomerKey[0].CustomerKey &&
+                                customerKeyArr.push(
+                                    findDECustomerKey[0].CustomerKey
+                                );
+
+                            // definition &&
+                            //     definition.targetKey &&
+                            //     customerKeyArr.push(definition.targetKey);
                         } else if (assetTypeName === 'userinitiatedsend') {
                             const sendDefinitionList =
                                 (definition && definition.SendDefinitionList) ||

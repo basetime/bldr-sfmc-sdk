@@ -219,12 +219,13 @@ export class Folder {
                     rootFolderRequest.Results.find(
                         (folder) => folder.Name === rootFolderContext.rootName
                     );
+
                 results = rootFolder && [rootFolder];
 
-                if (rootFolderRequest.Results[0].ID === request.categoryId) {
+                if (rootFolder.ID === request.categoryId) {
                     return {
                         results,
-                        stop: false,
+                        stop: true,
                     };
                 }
             }
