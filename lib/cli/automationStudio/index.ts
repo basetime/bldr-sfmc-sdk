@@ -7,6 +7,7 @@ import { SFMC_Client } from '../types/sfmc_client';
 import { guid, uniqueArrayByKey } from '../utils';
 import { buildFolderPathsSoap } from '../utils/BuildSoapFolderObjects';
 import { formatAutomation } from '../utils/_context/automationStudio/FormatAutomationAsset';
+import parseQueryText from '../utils/_context/automationStudio/ParseSQLDataExtensions';
 
 export class AutomationStudio {
     sfmc: SFMC_Client;
@@ -471,10 +472,12 @@ export class AutomationStudio {
                             formattedAutomationDependencies.contentBuilder.push(
                                 emailAssetResponse
                             );
+
                     case 'dataextractactivity':
                     case 'importactivity':
                     case 'userinitiatedsend':
                     case 'queryactivity':
+                    case 'filteractivity':
                         if (assetTypeName === 'dataextractactivity') {
                             findDECustomerKey = definition.dataFields.find(
                                 (dataField: {
@@ -487,6 +490,22 @@ export class AutomationStudio {
                             findDECustomerKey &&
                                 findDECustomerKey.value &&
                                 customerKeyArr.push(findDECustomerKey.value);
+                        } else if (assetTypeName === 'filteractivity') {
+                            findDECustomerKey =
+                                await this.emailStudio.searchDataExtensions({
+                                    searchKey: 'ObjectID',
+                                    searchTerm: definition.sourceObjectId,
+                                });
+
+                            findDECustomerKey &&
+                                Array.isArray(findDECustomerKey) &&
+                                findDECustomerKey.length === 1 &&
+                                findDECustomerKey[0].CustomerKey &&
+                                customerKeyArr.push(
+                                    findDECustomerKey[0].CustomerKey
+                                );
+
+                            customerKeyArr.push(definition.resultDEKey);
                         } else if (assetTypeName === 'importactivity') {
                             findDECustomerKey =
                                 await this.emailStudio.searchDataExtensions({
@@ -502,6 +521,7 @@ export class AutomationStudio {
                                     findDECustomerKey[0].CustomerKey
                                 );
                         } else if (assetTypeName === 'queryactivity') {
+                            //Get CustomerKey of target DE
                             findDECustomerKey =
                                 await this.emailStudio.searchDataExtensions({
                                     searchKey: 'ObjectID',
@@ -516,9 +536,34 @@ export class AutomationStudio {
                                     findDECustomerKey[0].CustomerKey
                                 );
 
-                            // definition &&
-                            //     definition.targetKey &&
-                            //     customerKeyArr.push(definition.targetKey);
+                            //Get Reference Data Extensions from sql text
+                            const parsedQueryDataExtensions =
+                                await parseQueryText(definition.queryText);
+
+                            if (
+                                parsedQueryDataExtensions &&
+                                parsedQueryDataExtensions.length
+                            ) {
+                                for (const p in parsedQueryDataExtensions) {
+                                    const dataExtensionName =
+                                        parsedQueryDataExtensions[p];
+                                    findDECustomerKey =
+                                        await this.emailStudio.searchDataExtensions(
+                                            {
+                                                searchKey: 'Name',
+                                                searchTerm: dataExtensionName,
+                                            }
+                                        );
+
+                                    findDECustomerKey &&
+                                        Array.isArray(findDECustomerKey) &&
+                                        findDECustomerKey.length === 1 &&
+                                        findDECustomerKey[0].CustomerKey &&
+                                        customerKeyArr.push(
+                                            findDECustomerKey[0].CustomerKey
+                                        );
+                                }
+                            }
                         } else if (assetTypeName === 'userinitiatedsend') {
                             const sendDefinitionList =
                                 (definition && definition.SendDefinitionList) ||
