@@ -83,7 +83,6 @@ export class Account {
             } else {
                 // If no argument is passed, get all Business Unit Details
                 const getAllMidsRequest = await this.getInstanceDetails();
-                console.log({getAllMidsRequest})
                 if (
                     getAllMidsRequest &&
                     getAllMidsRequest.OverallStatus !== 'OK'

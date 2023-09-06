@@ -268,17 +268,12 @@ export class ContentBuilderAsset {
             if (!assetId) {
                 throw new Error('Asset Id is required');
             }
-
-            console.log(assetId);
-
             const apiRequest = await this.client.rest.delete(
                 `/asset/v1/content/assets/${assetId}`
             );
 
-            console.log('apiRequest', apiRequest);
             return apiRequest;
         } catch (err) {
-            console.log('(e)', err);
             return err;
         }
     }
