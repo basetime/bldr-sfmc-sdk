@@ -193,7 +193,7 @@ export class Folder {
     async getParentFoldersRecursive(request: {
         contentType: string;
         categoryId: number;
-    }): Promise<{ results: any[]; stop: Boolean }> {
+    }): Promise<{ results: any[]; initialCategory: any[], stop: Boolean }> {
         let parentId;
         let stopFolderId;
         let results: object[] = [];
@@ -225,6 +225,7 @@ export class Folder {
                 if (rootFolder.ID === request.categoryId) {
                     return {
                         results,
+                        initialCategory: rootFolderRequest.Results,
                         stop: true,
                     };
                 }
@@ -242,7 +243,7 @@ export class Folder {
             initialCategory.Results.length
         ) {
             const initResult = initialCategory.Results[0];
-            results = [...results, ...initialCategory.Results];
+            // results = [...results, ...initialCategory.Results];
             if (
                 initResult &&
                 initResult.ParentFolder &&
@@ -252,6 +253,7 @@ export class Folder {
             ) {
                 return {
                     results,
+                    initialCategory: initialCategory.Results,
                     stop: false,
                 };
             } else {
@@ -311,6 +313,7 @@ export class Folder {
 
         return {
             results,
+            initialCategory: initialCategory.Results,
             stop: false,
         };
     }
@@ -418,7 +421,7 @@ export class Folder {
             down,
             full: [
                 ...new Map(
-                    [...up.results, ...down].map((item) => [item['ID'], item])
+                    [...up.results, ...up.initialCategory, ...down].map((item) => [item['ID'], item])
                 ).values(),
             ],
         };

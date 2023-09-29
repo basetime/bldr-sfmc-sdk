@@ -183,10 +183,13 @@ export class AutomationStudio {
             const folderResponse = await this.sfmc.folder.getFoldersFromMiddle(
                 request
             );
+
+            console.log(JSON.stringify(folderResponse, null, 2))
             const buildFolderPaths = await buildFolderPathsSoap(
                 folderResponse.full
             );
 
+            const ignoreFolders = folderResponse.up.results.map((folder: {ID: number}) => folder.ID);
             const formattedFolders = buildFolderPaths.folders.map((folder) => {
                 return {
                     id: folder.ID,
@@ -203,9 +206,11 @@ export class AutomationStudio {
                 folderResponse.full
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
-                            folder.Name !== 'my automations' && folder.ID
+                            folder.Name !== 'my automations'  && !ignoreFolders.includes(folder.ID) && folder.ID
                     )
-                    .filter(Boolean);
+                    .filter((Boolean));
+
+            console.log({ignoreFolders, isolateFolderIds})
 
             const collectAutomationKeys =
                 await this.sfmc.automation.getAssetsByFolderArray(
