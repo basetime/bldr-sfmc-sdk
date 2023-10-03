@@ -127,7 +127,6 @@ export class Folder {
                 }
             );
 
-            console.log(JSON.stringify(resp.Results, null, 2));
 
             if (resp.OverallStatus !== 'OK') {
                 throw new Error('Unable to Retrieve Folders');
@@ -199,6 +198,7 @@ export class Folder {
         let parentId;
         let stopFolderId;
         let results: object[] = [];
+        let rootFolder;
 
         const rootFolderContext = this.sfmc_context.find(
             (ctx) => ctx.contentType === request.contentType
@@ -216,7 +216,7 @@ export class Folder {
                 rootFolderRequest.Results &&
                 rootFolderRequest.Results.length
             ) {
-                const rootFolder =
+                rootFolder =
                     rootFolderRequest.Results &&
                     rootFolderRequest.Results.find(
                         (folder) => folder.Name === rootFolderContext.rootName
@@ -224,10 +224,11 @@ export class Folder {
 
                 results = rootFolder && [rootFolder];
 
+
                 if (rootFolder.ID === request.categoryId) {
                     return {
                         results,
-                        initialCategory: rootFolderRequest.Results || [],
+                        initialCategory: [rootFolder] || [],
                         stop: true,
                     };
                 }
