@@ -310,6 +310,7 @@ export class EmailStudio {
 
             const buildFolderPaths = await buildFolderPathsSoap([
                 ...parentFolders.results,
+                ...parentFolders.initialCategory,
                 ...dataExtensionFolderObject.Results,
             ]);
 

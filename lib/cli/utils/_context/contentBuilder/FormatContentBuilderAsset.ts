@@ -55,6 +55,10 @@ const setAssetPostObject = (
         },
     };
 
+    if (asset.memberId) {
+        post.memberId = asset.memberId;
+    }
+
     if (asset.content) {
         post.content = asset.content;
     }

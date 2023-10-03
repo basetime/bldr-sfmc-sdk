@@ -127,6 +127,8 @@ export class Folder {
                 }
             );
 
+            console.log(JSON.stringify(resp.Results, null, 2));
+
             if (resp.OverallStatus !== 'OK') {
                 throw new Error('Unable to Retrieve Folders');
             }
@@ -193,7 +195,7 @@ export class Folder {
     async getParentFoldersRecursive(request: {
         contentType: string;
         categoryId: number;
-    }): Promise<{ results: any[]; initialCategory: any[], stop: Boolean }> {
+    }): Promise<{ results: any[]; initialCategory: any[]; stop: Boolean }> {
         let parentId;
         let stopFolderId;
         let results: object[] = [];
@@ -225,7 +227,7 @@ export class Folder {
                 if (rootFolder.ID === request.categoryId) {
                     return {
                         results,
-                        initialCategory: rootFolderRequest.Results,
+                        initialCategory: rootFolderRequest.Results || [],
                         stop: true,
                     };
                 }
@@ -253,7 +255,7 @@ export class Folder {
             ) {
                 return {
                     results,
-                    initialCategory: initialCategory.Results,
+                    initialCategory: initialCategory.Results || [],
                     stop: false,
                 };
             } else {
@@ -313,7 +315,7 @@ export class Folder {
 
         return {
             results,
-            initialCategory: initialCategory.Results,
+            initialCategory: initialCategory.Results || [],
             stop: false,
         };
     }
@@ -421,7 +423,9 @@ export class Folder {
             down,
             full: [
                 ...new Map(
-                    [...up.results, ...up.initialCategory, ...down].map((item) => [item['ID'], item])
+                    [...up.results, ...up.initialCategory, ...down].map(
+                        (item) => [item['ID'], item]
+                    )
                 ).values(),
             ],
         };

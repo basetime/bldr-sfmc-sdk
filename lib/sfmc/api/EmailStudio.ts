@@ -342,9 +342,10 @@ export class EmailStudio {
                     categoryId: dataExtension.Results[0].CategoryID,
                 });
 
-            const compiledFolderPaths = await buildFolderPathsSoap(
-                folderPathResponse.results
-            );
+            const compiledFolderPaths = await buildFolderPathsSoap([
+                ...folderPathResponse.results,
+                ...folderPathResponse.initialCategory,
+            ]);
 
             const dataExtensionFolderObject = compiledFolderPaths.folders.find(
                 (folder) => folder.ID === dataExtension.Results[0].CategoryID
@@ -558,13 +559,18 @@ export class EmailStudio {
                     categoryId: dataExtension.Results[0].CategoryID,
                 });
 
-            const compiledFolderPaths = await buildFolderPathsSoap(
-                folderPathResponse.results
-            );
+            const compiledFolderPaths = await buildFolderPathsSoap([
+                ...folderPathResponse.results,
+                ...folderPathResponse.initialCategory,
+            ]);
+
             const dataExtensionFolderObject = compiledFolderPaths.folders.find(
                 (folder) => folder.ID === dataExtension.Results[0].CategoryID
             );
-            const { FolderPath } = dataExtensionFolderObject;
+
+            const FolderPath =
+                dataExtensionFolderObject &&
+                dataExtensionFolderObject.FolderPath;
 
             const dataExtensionFields = await this.getDataExtensionFields(
                 dataExtension.Results[0].CustomerKey

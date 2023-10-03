@@ -136,6 +136,7 @@ export class ContentBuilder {
                                 name: string;
                                 parentId: number;
                             };
+                            memberId?: number;
                             sharingProperties?: any;
                             fileProperties?: {
                                 publishedURL?: string;
@@ -160,6 +161,7 @@ export class ContentBuilder {
                                 Name: asset.name,
                                 AssetType: asset.assetType.name,
                                 CreatedDate: asset.createdDate,
+
                                 ModifiedDate: asset.modifiedDate,
                                 Category: {
                                     Name: asset.category.name,

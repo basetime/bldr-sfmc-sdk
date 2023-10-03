@@ -184,12 +184,13 @@ export class AutomationStudio {
                 request
             );
 
-            console.log(JSON.stringify(folderResponse, null, 2))
             const buildFolderPaths = await buildFolderPathsSoap(
                 folderResponse.full
             );
 
-            const ignoreFolders = folderResponse.up.results.map((folder: {ID: number}) => folder.ID);
+            const ignoreFolders = folderResponse.up.results.map(
+                (folder: { ID: number }) => folder.ID
+            );
             const formattedFolders = buildFolderPaths.folders.map((folder) => {
                 return {
                     id: folder.ID,
@@ -206,11 +207,11 @@ export class AutomationStudio {
                 folderResponse.full
                     .map(
                         (folder: SFMC_SOAP_Folder) =>
-                            folder.Name !== 'my automations'  && !ignoreFolders.includes(folder.ID) && folder.ID
+                            folder.Name !== 'my automations' &&
+                            !ignoreFolders.includes(folder.ID) &&
+                            folder.ID
                     )
-                    .filter((Boolean));
-
-            console.log({ignoreFolders, isolateFolderIds})
+                    .filter(Boolean);
 
             const collectAutomationKeys =
                 await this.sfmc.automation.getAssetsByFolderArray(
@@ -296,10 +297,14 @@ export class AutomationStudio {
                     categoryId,
                 });
 
+            const combinedFolderResponse = [
+                ...folderResponse.results,
+                ...folderResponse.initialCategory,
+            ];
             const simplifiedFolderResponse =
-                (folderResponse.results &&
-                    Array.isArray(folderResponse.results) &&
-                    folderResponse.results.map((folder: SFMC_SOAP_Folder) => {
+                (combinedFolderResponse &&
+                    Array.isArray(combinedFolderResponse) &&
+                    combinedFolderResponse.map((folder: SFMC_SOAP_Folder) => {
                         return {
                             ID: folder.ID,
                             Name: folder.Name,
@@ -765,7 +770,9 @@ export class AutomationStudio {
             request
         );
 
-        const buildFolderPaths = await buildFolderPathsSoap(folderResponse);
+        const buildFolderPaths = await buildFolderPathsSoap(
+            folderResponse.full
+        );
 
         const rootFolderObj = sfmc_context_mapping.find(
             (ctxFolder) => ctxFolder.contentType === request.contentType
