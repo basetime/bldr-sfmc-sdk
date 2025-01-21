@@ -66,6 +66,7 @@ export class SFMC implements SFMC_Client {
         searchDataExtensionByName: Function;
         retrieveDataExtensionPayloadByName: Function;
         retrieveDataExtensionPayloadByCustomerKey: Function;
+        getDataExtensionPayloadComplete: Function;
         getDataExtensionFields: Function;
         retrieveDataExtensionByObjectID: Function;
         postAsset: Function;

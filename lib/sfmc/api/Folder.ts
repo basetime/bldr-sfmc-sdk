@@ -127,7 +127,6 @@ export class Folder {
                 }
             );
 
-
             if (resp.OverallStatus !== 'OK') {
                 throw new Error('Unable to Retrieve Folders');
             }
@@ -224,11 +223,10 @@ export class Folder {
 
                 results = rootFolder && [rootFolder];
 
-
                 if (rootFolder.ID === request.categoryId) {
                     return {
                         results,
-                        initialCategory: [rootFolder] || [],
+                        initialCategory: (rootFolder && [rootFolder]) || [],
                         stop: true,
                     };
                 }
