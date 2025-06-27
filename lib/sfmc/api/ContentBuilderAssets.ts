@@ -72,7 +72,7 @@ export class ContentBuilderAsset {
                         {
                             page: {
                                 page: 1,
-                                pageSize: 200,
+                                pageSize: 500,
                             },
                             query: {
                                 property: 'category.id',
@@ -158,6 +158,7 @@ export class ContentBuilderAsset {
      */
     async searchAssets(request: { searchKey: string; searchTerm: string }) {
         try {
+            
             return this.client.rest.post('/asset/v1/content/assets/query', {
                 page: {
                     page: 1,

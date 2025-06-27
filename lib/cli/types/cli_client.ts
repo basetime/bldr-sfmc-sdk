@@ -22,5 +22,6 @@ export interface CLI_Client {
         searchDataExtensions: Function;
         gatherAssetsByCategoryId: Function;
         gatherAssetById: Function;
+        retrieveAllDataExtensions: Function;
     };
 }

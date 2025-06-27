@@ -371,6 +371,7 @@ export class AutomationStudio {
                         );
 
                     automationActivityDefinitions &&
+                        automationActivityDefinitions.length &&
                         automationActivityDefinitions.forEach((definition) => {
                             definition.bldrId = guid();
                             automationDefinitionOutput.push(definition);
@@ -381,7 +382,9 @@ export class AutomationStudio {
                     await this.sfmc.automation.getAutomationActivities(
                         automations
                     );
+                    
                 automationActivityDefinitions &&
+                    automationActivityDefinitions.length &&
                     automationActivityDefinitions.forEach((definition) => {
                         definition.bldrId = guid();
                         automationDefinitionOutput.push(definition);

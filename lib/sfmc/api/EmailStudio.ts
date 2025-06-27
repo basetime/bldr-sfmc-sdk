@@ -187,6 +187,23 @@ export class EmailStudio {
 
     /**
      *
+     */
+    retrieveAllDataExtensions = async () => {
+        return this.client.soap.retrieveBulk(
+            'DataExtension',
+            dataExtensionDefinition,
+            {
+                filter: {
+                    leftOperand: 'Name',
+                    operator: 'isNotNull',
+                    rightOperand: '',
+                },
+            }
+        );
+    };
+
+    /**
+     *
      * @param dataExtensionName
      * @returns
      */
@@ -217,7 +234,7 @@ export class EmailStudio {
 
             const dataExtensionRequest = await Promise.all(
                 chunkedArrays.map((assetArray) => {
-                    return this.client.soap.retrieve(
+                    return this.client.soap.retrieveBulk(
                         'DataExtension',
                         dataExtensionDefinition,
                         {

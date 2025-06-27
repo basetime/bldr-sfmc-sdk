@@ -42,6 +42,7 @@ export interface SFMC_Client {
         getEmailSendDefinitionActivity: Function;
         getAssetsByFolderArray: Function;
         retrieveDataExtensionPayloadByName: Function;
+        retrieveAllDataExtensions: Function;
         retrieveDataExtensionPayloadByCustomerKey: Function;
         searchDataExtensionByName: Function;
         postAsset: Function;

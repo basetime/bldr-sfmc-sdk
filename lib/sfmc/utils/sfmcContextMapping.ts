@@ -5,6 +5,7 @@ const sfmc_context_mapping: SFMCContextMapping[] = [
         name: 'Data Extensions',
         rootName: 'Data Extensions',
         context: 'dataExtension',
+        customerKey: 'dataExtension_default',
         contentType: 'dataextension',
     },
     {

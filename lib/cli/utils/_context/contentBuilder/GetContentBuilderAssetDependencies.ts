@@ -1,5 +1,4 @@
 import { match } from 'assert';
-import { el } from 'date-fns/locale';
 import { guid } from '../..';
 import { SFMC_Client } from '../../../types/sfmc_client';
 /**

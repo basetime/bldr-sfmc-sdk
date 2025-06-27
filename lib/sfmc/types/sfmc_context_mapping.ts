@@ -3,5 +3,6 @@ export interface SFMCContextMapping {
     rootName: string;
     context: string;
     contentType: string;
+    customerKey?: string;
     api?: string;
 }
